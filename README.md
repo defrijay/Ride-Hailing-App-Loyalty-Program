@@ -55,14 +55,14 @@ Proyek ini menganalisis **10.000 pengguna Ride Hailing App** menggunakan pendeka
 
 Ride Hailing App Loyalty Program adalah program loyalitas berbasis poin OVO yang mencakup seluruh ekosistem layanan Grab: GrabBike, GrabCar, GrabFood, GrabMart, dan GrabExpress. Program ini merupakan salah satu instrumen retensi pengguna utama di Indonesia.
 
-Tantangan utama program loyalitas seperti ini adalah mengidentifikasi pengguna yang berisiko churn *sebelum* mereka benar-benar berhenti menggunakan layanan sehingga tim product dan marketing dapat melakukan intervensi yang tepat waktu dan tepat sasaran.
+Industri ride-hailing Indonesia beroperasi di lingkungan persaingan tinggi di mana pengguna bisa berpindah platform kapan saja tanpa konsekuensi, tidak seperti industri perbankan atau telekomunikasi yang terikat kontrak. Fauzi & Sheng (2021) menemukan bahwa keputusan pengguna ride-hailing di Indonesia untuk bertahan di satu platform didorong oleh nilai yang mereka rasakan, bukan kebiasaan semata [[1]](https://doi.org/10.1108/APJML-05-2019-0332). Begitu nilai itu berkurang, perpindahan bisa terjadi tanpa peringatan.
 
-Proyek ini mensimulasikan pekerjaan yang dilakukan oleh tim Research & Data Analytics dalam mendukung program-program yang sedang berjalan, khususnya dalam hal:
-- Memahami perilaku pengguna di berbagai segmen loyalitas
-- Memprediksi siapa yang akan churn dan mengapa
-- Merekomendasikan aksi retensi yang spesifik dan terukur per segmen
+Program loyalitas berbasis tier dan poin hadir untuk meningkatkan *switching cost* secara psikologis. Katili et al. (2024) mengonfirmasi bahwa program reward yang dirancang baik secara langsung memengaruhi niat pengguna Indonesia untuk terus menggunakan layanan [[2]](https://www.researchgate.net/publication/381873678_The_influence_of_the_ride_hailing_apps_loyalty_program_on_customer_loyalty_A_case_study_in_Indonesia). Namun program yang tidak tepat sasaran justru boros, menuangkan insentif ke pengguna yang sudah loyal, sementara yang benar-benar hampir pergi tidak tertangani.
 
----
+Di sinilah data menjadi kunci. Siva Subramanian (2024) menegaskan bahwa biaya mempertahankan pengguna jauh lebih rendah dari akuisisi baru, sehingga deteksi churn lebih awal berdampak langsung pada efisiensi anggaran marketing [[3]](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4765777). Segmentasi berbasis perilaku transaksi (RFM) terbukti mengungkap profil pengguna yang tidak terlihat dari data demografis dan menghasilkan kelompok yang langsung bisa diterjemahkan ke strategi berbeda [[4]](https://doi.org/10.1051/e3sconf/202346502005). Melengkapinya dengan prediksi churn yang bisa dijelaskan, bukan hanya akurat memberi tim bisnis informasi yang cukup untuk merancang intervensi yang tepat waktu dan tepat sasaran [[5]](https://doi.org/10.3389/frai.2026.1748799).
+
+Proyek ini mensimulasikan pekerjaan tim Research & Data Analytics dalam mendukung program loyalitas yang berjalan, mencakup: pemetaan segmen perilaku pengguna, prediksi siapa yang paling berisiko churn dalam 90 hari ke depan, dan rekomendasi aksi retensi spesifik per segmen, bukan intervensi generik yang boros anggaran.
+
 
 ## ❓ Problem Statement
 
