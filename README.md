@@ -1,5 +1,7 @@
 # 🏆 **Ride Hailing App Loyalty Program** — User Segmentation & Churn Risk Analysis
 
+![Cover Project](cover.png)
+
 > **Consumer Insight**
 > Ride Hailing App user segmentation using RFM + K-Means, equipped with churn prediction via XGBoost and SHAP explainability to identify potential revenue at risk from 10,000 synthetic users.
 
