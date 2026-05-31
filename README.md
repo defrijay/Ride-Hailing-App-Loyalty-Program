@@ -81,60 +81,67 @@ This project simulates the work of a Research & Data Analytics team in supportin
 
 ## 💡 Key Findings
 
-### 1. Hibernating dominates the user base not a small segment
+### 1. Hibernating dominates the user base — not a small segment
 ![rfm](outputs/figures/rfm.png)
 > The **Hibernating** segment is the **largest** group at **38.9%** of total users (rule-based RFM), far exceeding the initial design of 20%. This indicates that the majority of the user base is already inactive and requires an immediate win-back strategy, not just maintenance.
+>
+> *(Note: segment distribution here comes from rule-based RFM scoring applied to the full dataset, not the ground truth design labels. The distributional shift is caused by dynamic quartile scoring — see Dataset section.)*
 
 ### 2. Churn rate is highly skewed across segments
 ![shap_summary](outputs/figures/summary_segments.png)
-> EDA analysis reveals extreme disparity: **Hibernating reaches an 85% churn rate**, At_Risk 46%, while **Champions is only 3%** and Loyal 10%. This confirms that one-size-fits-all interventions are ineffective each segment requires a different approach.
+> EDA analysis reveals extreme disparity across ground truth design segments: **Hibernating reaches 85% churn rate**, At_Risk 46%, while **Champions is only 4%** and Loyal 10%. This confirms that one-size-fits-all interventions are ineffective — each segment requires a different approach.
+>
+> *(Note: churn rates here are calculated based on `segment_true` — the ground truth design labels used to generate the dataset. They reflect intended behavioral patterns per segment, not the output of the RFM rule-based method.)*
 
-### 3. recency_days is the most dominant churn predictor
+### 3. recency_days is the most dominant churn predictor (SHAP global #1)
 ![shap_summary](outputs/figures/shap_summary_plot.png)
-> Based on SHAP analysis, **recency_days** is the feature with the highest global importance. For an example At-Risk user with a 70.9% churn probability, a recency of 49 days contributes **+0.15** to the churn prediction far above any other feature.
+> Based on SHAP analysis, **recency_days** is the feature with the highest global importance (mean |SHAP| ≈ 0.42). For an example At-Risk user with a 70.9% churn probability, a recency of 49 days contributes **+0.15** to the churn prediction at the instance level — far above any other feature for that specific user.
+>
+> *(Note: the global mean |SHAP| ≈ 0.42 reflects average importance across all 2,001 test samples. The per-instance value of +0.15 shown in the waterfall chart is specific to one At-Risk example user and will vary by individual.)*
 
-### 4. Member tier is most vulnerable to churn
+### 4. n_services is the second strongest predictor — ecosystem lock-in matters
+> Based on SHAP analysis, **n_services** ranks **#2 globally** (mean |SHAP| ≈ 0.28). Users using only 1 service have a churn risk **3.2× higher** than users with 3+ services. This makes cross-service adoption a critical early retention lever, especially for Promising segment users.
+
+### 5. Member tier is most vulnerable to churn
 ![Churn Rate Analysis](outputs/figures/eda_05_churn_rate_analysis.png)
 > Churn analysis per tier shows **Member tier has a 57.9% churn rate**, in stark contrast to Platinum which is only **3.3%**. This inverse relationship between tier and churn confirms the importance of tier upgrade programs as a retention strategy.
 
-### 5. K-Means detects 5 business-meaningful clusters
+### 6. K-Means detects 5 business-meaningful clusters
 ![Elbow Silhouette](outputs/figures/elbow_silhouette.png)
 ![Ari](outputs/figures/ari.png)
-> Final K-Means (k=5) yields **ARI 0.485** moderate alignment with ground truth. Cluster 1 ("Champions") has a recency of 7 days, frequency of 22x/month, monetary ~Rp 1.7 million; Cluster 3 ("Lost Customers") has recency of 258 days and frequency of 0x/month, proving that clustering captures real behavioral patterns.
+> Final K-Means (k=5) yields **ARI 0.485** — moderate alignment with ground truth labels. Cluster 1 ("Champions-like") has a recency of 7 days, frequency of 22x/month, monetary ~Rp 1.7 million; Cluster 3 ("Lost Customers") has recency of 258 days and frequency of 0x/month, proving that clustering captures real behavioral patterns even without label supervision. Best silhouette score is 0.542 at k=2; k=5 was chosen for consistency with the 5-segment business framework.
 
-### 6. ML models are competitive and consistent
+### 7. ML models are competitive and consistent
 ![Model Comparison](outputs/figures/model_comparison.png)
-> All three models show highly competitive and consistent performance: Logistic Regression (AUC 0.842), Random Forest (F1 0.694), XGBoost (AUC 0.838, F1 0.689). **Random Forest has the highest accuracy (78.0%)** while **Logistic Regression leads in AUC-ROC (0.842)**. XGBoost was selected as the final model due to its best balance across all metrics.
+> All three models show highly competitive and consistent performance: Logistic Regression (AUC 0.842), Random Forest (F1 0.694), XGBoost (AUC 0.838, F1 0.689). **Random Forest has the highest accuracy (78.0%)** while **Logistic Regression leads in AUC-ROC (0.842)**. XGBoost was selected as the final model due to its best balance across all metrics, native `scale_pos_weight` support, and full SHAP TreeExplainer compatibility.
 
----
+### 8. Revenue at risk reaches Rp 583 million/month. At_Risk is the highest-value target
+![Model Comparison](outputs/figures/revenue_per_segment.png)
+> Revenue at risk is calculated as `n_users × avg_monetary × churn_rate` per segment. **At_Risk contributes Rp 208 million/month**, the largest single-segment risk despite being only 10.2% of users. Loyal segment follows at Rp 140 million/month. Hibernating, despite 85% churn rate, contributes only Rp 69 million due to near-zero monetary values.
 
-## 👥 Segment Profiles
 
-Based on the results of rule-based RFM segmentation from notebook 04:
-
-| Segment | Users (%) | Churn Rate | Avg Recency | Avg Freq/month | Avg Monetary | Churn Rate (Member Tier) |
-|---|---|---|---|---|---|---|
-| 🏆 **Champions** | 1,500 (17.7%) | ~3% | 1–14 days | 15–30x | Rp 800K–2.5M | N/A (predominantly Platinum) |
-| 💙 **Loyal** | 2,200 (22.1%) | ~10% | 7–30 days | 8–15x | Rp 300K–800K | 40.9% Silver |
-| ⚠️ **At_Risk** | 1,020 (10.2%) | ~46% | 45–90 days | 2–6x | Rp 100K–350K | 60.3% Silver |
-| 🌱 **Promising** | 1,110 (11.1%) | ~26% | 3–21 days | 3–8x | Rp 80K–250K | 68.9% Member |
-| 😴 **Hibernating** | 3,890 (38.9%) | **~85%** | 90–365 days | 0–1x | Rp 0–80K | 70.0% Member |
-
-> **Important note:** The rule-based segment distribution differs from the initial ground truth design due to dynamic quartile scoring. Hibernating dominates because of the large proportion of users with high recency, while Champions becomes larger than 15% due to scoring thresholds.
+| Segment | Users | Churn Rate | Revenue at Risk/month |
+|---|---|---|---|
+| 🏆 Champions | 1,500 | 3% | Rp 80,678,000 |
+| 💙 Loyal | 2,500 | 10% | **Rp 140,158,000** |
+| ⚠️ At_Risk | 2,000 | 46% | **Rp 208,837,000** |
+| 🌱 Promising | 2,000 | 26% | Rp 84,627,000 |
+| 😴 Hibernating | 2,000 | 85% | Rp 69,024,000 |
+| **TOTAL** | **10,000** | **34.4%** | **Rp 583,324,000** |
 
 ---
 
 ## 📊 Recommendations
 
-Based on churn rate analysis per segment, tier, and SHAP profile:
+Based on churn rate analysis per segment, tier, SHAP feature importance, and revenue at risk calculations:
 
-| Priority | Segment | Insight from Data | Recommended Action | Estimated Impact |
+| Priority | Segment | Insight from Data | Recommended Action | Estimated ROI Basis |
 |---|---|---|---|---|
-| **P1** | ⚠️ At_Risk | Churn rate 46%, recency 45–90 days, still in Silver/Gold tier | Alert "OVO Points expiring in 30 days" + 25% off GrabFood voucher | Recovery of 25% At_Risk users |
-| **P1** | 😴 Hibernating | Churn rate 85%, 70% in Member tier, recency 90–365 days | Win-back campaign only for high-value historical users (monetary > Rp 500K); skip low-value as cost > benefit | Focus on top 20% high-value Hibernating |
-| **P2** | 💙 Loyal | Churn rate 10%, 40.9% in Silver tier potential tier upgrade | Push notification "X more points to reach Gold" + weekly frequency-based challenge | 20% upgrade to Gold tier within 90 days |
-| **P2** | 🌱 Promising | Churn rate 26%, average 1–2 services used | "Try GrabMart, earn 2x points this week" push multi-service adoption | Target ≥3 services within 60 days; n_services = top SHAP feature |
-| **P3** | 🏆 Champions | Churn rate only 3%, predominantly Platinum/Gold | Early access to new features + monthly double-points event + personal appreciation notification | Maintain 97%+ retention rate |
+| **P1** | ⚠️ At_Risk | Churn rate 46%, revenue at risk Rp 208 juta/month, recency 45–90 days; SHAP: recency_days #1 predictor | Alert "OVO Points expiring in 30 days" + 25% off GrabFood voucher; trigger at recency > 45 days | If 25% of 2,000 users recovered (500 users × avg Rp 225K/month) → Rp 112 juta/month recovery potential |
+| **P1** | 😴 Hibernating | Churn rate 85%, but revenue at risk only Rp 69 juta due to near-zero monetary; 70% in Member tier | Win-back campaign **only** for users with historical monetary > Rp 500K (est. top 20% = ~400 users); skip low-value as voucher cost likely exceeds recovery value | Target pool: ~400 users × avg Rp 500K × 15% recovery = Rp 30 juta/month potential; cost-benefit must be validated before scaling |
+| **P2** | 💙 Loyal | Churn rate 10%, revenue at risk Rp 140 juta/month (2nd largest); 40.9% Silver — close to Gold threshold | Push notification "X more points to reach Gold" + weekly frequency-based challenge; tier upgrade reduces churn from ~10% to ~3% (Silver → Gold) | If 20% of 2,210 users upgrade to Gold (442 users): estimated churn reduction saves Rp 28 juta/month at avg Rp 550K spend |
+| **P2** | 🌱 Promising | Churn rate 26%; n_services = SHAP #2 global predictor; avg n_services = 1–2 | "Try GrabMart, earn 2x points this week" — push multi-service adoption; users with n_services ≥ 3 have 3.2× lower churn risk | If 30% of 1,110 users add 1+ service (333 users × churn reduction ~20%) → Rp ~17 juta/month retention gain |
+| **P3** | 🏆 Champions | Churn rate only 4%, predominantly Platinum/Gold; recency 1–14 days; revenue at risk Rp 80 juta | Early access to new features + monthly double-points event + personal appreciation notification | Maintaining 96%+ retention protects Rp 77 juta/month baseline revenue; minimal intervention cost |
 
 ---
 
