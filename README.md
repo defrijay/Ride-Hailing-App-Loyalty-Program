@@ -1,7 +1,7 @@
 # 🏆 **Ride Hailing App Loyalty Program** — User Segmentation & Churn Risk Analysis
 
 > **Consumer Insight**
-> Segmentasi pengguna Ride Hailing App menggunakan RFM + K-Means, dilengkapi prediksi churn dengan XGBoost dan SHAP explainability mengidentifikasi potensi revenue at risk dari 10.000 pengguna sintetis.
+> Ride Hailing App user segmentation using RFM + K-Means, equipped with churn prediction via XGBoost and SHAP explainability to identify potential revenue at risk from 10,000 synthetic users.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 [![XGBoost](https://img.shields.io/badge/XGBoost-AUC--ROC%200.838-FF6600?style=flat)](https://xgboost.readthedocs.io)
@@ -31,18 +31,18 @@
 
 ## 📌 TL;DR — Executive Summary
 
-Proyek ini menganalisis **10.000 pengguna Ride Hailing App** menggunakan pendekatan end-to-end: mulai dari pembuatan synthetic dataset yang realistis, EDA mendalam, RFM segmentation + K-Means clustering, hingga churn prediction berbasis machine learning dengan SHAP explainability.
+This project analyzes **10,000 Ride Hailing App users** using an end-to-end approach: starting from the creation of a realistic synthetic dataset, in-depth EDA, RFM segmentation + K-Means clustering, through to machine learning-based churn prediction with SHAP explainability.
 
-**3 temuan utama:**
-- 📍 **Hibernating** (38.9% dari user base) adalah segmen terbesar, mayoritas sudah tidak aktif dan membutuhkan strategi win-back segera.
-- 📍 **recency_days** adalah prediktor churn terkuat (SHAP ≈ 0.14 per instance), semakin lama tidak transaksi, semakin tinggi risiko churn.
-- 📍 **XGBoost** dipilih sebagai model final dengan **AUC-ROC 0.838**, **F1-score 0.689**, berhasil menangkap **73% pengguna yang benar-benar churn** (Recall = 0.731).
+**3 main findings:**
+- 📍 **Hibernating** (38.9% of the user base) is the largest segment; the majority are already inactive and require an immediate win-back strategy.
+- 📍 **recency_days** is the strongest churn predictor (SHAP ≈ 0.14 per instance) — the longer since the last transaction, the higher the churn risk.
+- 📍 **XGBoost** was selected as the final model with **AUC-ROC 0.838**, **F1-score 0.689**, successfully capturing **73% of users who actually churned** (Recall = 0.731).
 
-| Metrik | Nilai |
+| Metric | Value |
 |---|---|
-| Total pengguna | 10.000 |
+| Total users | 10,000 |
 | Overall churn rate | 34.4% |
-| Model terpilih | XGBoost |
+| Selected model | XGBoost |
 | AUC-ROC | 0.838 |
 | F1-score (churn class) | 0.689 |
 | Recall (churn class) | 0.731 |
@@ -53,101 +53,108 @@ Proyek ini menganalisis **10.000 pengguna Ride Hailing App** menggunakan pendeka
 
 ## 🎯 Background
 
-Ride Hailing App Loyalty Program adalah program loyalitas berbasis poin OVO yang mencakup seluruh ekosistem layanan Grab: GrabBike, GrabCar, GrabFood, GrabMart, dan GrabExpress. Program ini merupakan salah satu instrumen retensi pengguna utama di Indonesia.
+The Ride Hailing App Loyalty Program is an OVO points-based loyalty program that covers the entire Grab service ecosystem: GrabBike, GrabCar, GrabFood, GrabMart, and GrabExpress. This program is one of the primary user retention instruments in Indonesia.
 
-Industri ride-hailing Indonesia beroperasi di lingkungan persaingan tinggi di mana pengguna bisa berpindah platform kapan saja tanpa konsekuensi, tidak seperti industri perbankan atau telekomunikasi yang terikat kontrak. Fauzi & Sheng (2021) menemukan bahwa keputusan pengguna ride-hailing di Indonesia untuk bertahan di satu platform didorong oleh nilai yang mereka rasakan, bukan kebiasaan semata [[1]](https://doi.org/10.1108/APJML-05-2019-0332). Begitu nilai itu berkurang, perpindahan bisa terjadi tanpa peringatan.
+Indonesia's ride-hailing industry operates in a highly competitive environment where users can switch platforms at any time without consequences, unlike the banking or telecommunications industries which are bound by contracts. Fauzi & Sheng (2021) found that ride-hailing users in Indonesia decide to stay on one platform driven by the value they perceive, not habit alone [[1]](https://doi.org/10.1108/APJML-05-2019-0332). Once that value diminishes, switching can happen without warning.
 
-Program loyalitas berbasis tier dan poin hadir untuk meningkatkan *switching cost* secara psikologis. Katili et al. (2024) mengonfirmasi bahwa program reward yang dirancang baik secara langsung memengaruhi niat pengguna Indonesia untuk terus menggunakan layanan [[2]](https://www.researchgate.net/publication/381873678_The_influence_of_the_ride_hailing_apps_loyalty_program_on_customer_loyalty_A_case_study_in_Indonesia). Namun program yang tidak tepat sasaran justru boros, menuangkan insentif ke pengguna yang sudah loyal, sementara yang benar-benar hampir pergi tidak tertangani.
+Tier- and points-based loyalty programs exist to psychologically increase switching costs. Katili et al. (2024) confirmed that well-designed reward programs directly influence Indonesian users' intention to continue using the service [[2]](https://www.researchgate.net/publication/381873678_The_influence_of_the_ride_hailing_apps_loyalty_program_on_customer_loyalty_A_case_study_in_Indonesia). However, poorly targeted programs are simply wasteful pouring incentives into already-loyal users while those who are genuinely about to leave go unaddressed.
 
-Di sinilah data menjadi kunci. Siva Subramanian (2024) menegaskan bahwa biaya mempertahankan pengguna jauh lebih rendah dari akuisisi baru, sehingga deteksi churn lebih awal berdampak langsung pada efisiensi anggaran marketing [[3]](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4765777). Segmentasi berbasis perilaku transaksi (RFM) terbukti mengungkap profil pengguna yang tidak terlihat dari data demografis dan menghasilkan kelompok yang langsung bisa diterjemahkan ke strategi berbeda [[4]](https://doi.org/10.1051/e3sconf/202346502005). Melengkapinya dengan prediksi churn yang bisa dijelaskan, bukan hanya akurat memberi tim bisnis informasi yang cukup untuk merancang intervensi yang tepat waktu dan tepat sasaran [[5]](https://doi.org/10.3389/frai.2026.1748799).
+This is where data becomes key. Siva Subramanian (2024) asserts that the cost of retaining users is far lower than new acquisition, so early churn detection directly impacts marketing budget efficiency [[3]](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4765777). Behavioral transaction-based segmentation (RFM) has been proven to reveal user profiles invisible from demographic data and produces groups that can be directly translated into different strategies [[4]](https://doi.org/10.1051/e3sconf/202346502005). Complementing it with explainable churn prediction, not just accurate gives the business team enough information to design timely and targeted interventions [[5]](https://doi.org/10.3389/frai.2026.1748799).
 
-Proyek ini mensimulasikan pekerjaan tim Research & Data Analytics dalam mendukung program loyalitas yang berjalan, mencakup: pemetaan segmen perilaku pengguna, prediksi siapa yang paling berisiko churn dalam 90 hari ke depan, dan rekomendasi aksi retensi spesifik per segmen, bukan intervensi generik yang boros anggaran.
+This project simulates the work of a Research & Data Analytics team in supporting a running loyalty program, covering: mapping user behavioral segments, predicting who is most at risk of churning within the next 90 days, and providing specific retention action recommendations per segment not generic, budget-wasting interventions.
 
 
 ## ❓ Problem Statement
 
-> *"Dari 10.000 pengguna aktif Ride Hailing App, siapa yang paling berisiko churn dalam 90 hari ke depan dan intervensi apa yang paling efektif untuk mempertahankan mereka?"*
+> *"Of 10,000 active Ride Hailing App users, who is most at risk of churning within the next 90 days and what interventions are most effective to retain them?"*
 
 **Research Questions:**
 
 | # | Research Question |
 |---|---|
-| RQ1 | Segmen perilaku apa yang ada di antara pengguna berdasarkan dimensi Recency, Frequency, Monetary, dan Engagement? |
-| RQ2 | Model mana yang menghasilkan akurasi prediksi churn tertinggi, dan fitur apa yang paling prediktif? |
-| RQ3 | Bagaimana probabilitas churn berbeda antar segmen dan tier, dan berapa revenue at risk per segmen? |
-| RQ4 | Intervensi retensi apa yang memberikan estimated ROI tertinggi per segmen? |
+| RQ1 | What behavioral segments exist among users based on the dimensions of Recency, Frequency, Monetary, and Engagement? |
+| RQ2 | Which model yields the highest churn prediction accuracy, and which features are the most predictive? |
+| RQ3 | How does churn probability differ across segments and tiers, and how much revenue is at risk per segment? |
+| RQ4 | Which retention interventions deliver the highest estimated ROI per segment? |
 
 ---
 
 ## 💡 Key Findings
 
-### 1. Hibernating mendominasi user base bukan segmen kecil
-> Segmen **Hibernating** merupakan kelompok **terbesar** dengan **38.9%** dari total pengguna (rule-based RFM), jauh melampaui desain awal 20%. Ini mengindikasikan bahwa mayoritas user base sudah tidak aktif dan membutuhkan strategi win-back segera, bukan hanya maintenance.
+### 1. Hibernating dominates the user base not a small segment
+![rfm](outputs/figures/rfm.png)
+> The **Hibernating** segment is the **largest** group at **38.9%** of total users (rule-based RFM), far exceeding the initial design of 20%. This indicates that the majority of the user base is already inactive and requires an immediate win-back strategy, not just maintenance.
 
-### 2. Churn rate sangat timpang antar segmen
-> Analisis EDA mengungkap disparitas ekstrem: **Hibernating mencapai 85% churn rate**, At_Risk 46%, sementara **Champions hanya 3%** dan Loyal 10%. Ini mengkonfirmasi bahwa intervensi one-size-fits-all tidak efektif setiap segmen membutuhkan pendekatan berbeda.
+### 2. Churn rate is highly skewed across segments
+![shap_summary](outputs/figures/summary_segments.png)
+> EDA analysis reveals extreme disparity: **Hibernating reaches an 85% churn rate**, At_Risk 46%, while **Champions is only 3%** and Loyal 10%. This confirms that one-size-fits-all interventions are ineffective each segment requires a different approach.
 
-### 3. recency_days adalah prediktor churn paling dominan
-> Berdasarkan SHAP analysis, **recency_days** adalah fitur dengan global importance tertinggi. Pada contoh pengguna At-Risk dengan churn probability 70.9%, recency 49 hari berkontribusi **+0.15** terhadap churn prediction jauh di atas fitur lainnya.
+### 3. recency_days is the most dominant churn predictor
+![shap_summary](outputs/figures/shap_summary_plot.png)
+> Based on SHAP analysis, **recency_days** is the feature with the highest global importance. For an example At-Risk user with a 70.9% churn probability, a recency of 49 days contributes **+0.15** to the churn prediction far above any other feature.
 
-### 4. Tier Member paling rentan churn
-> Analisis churn per tier menunjukkan **Member tier memiliki churn rate 57.9%**, berbanding terbalik dengan Platinum yang hanya **3.3%**. Hubungan invers antara tier dan churn ini mengkonfirmasi pentingnya program tier upgrade sebagai strategi retensi.
+### 4. Member tier is most vulnerable to churn
+![Churn Rate Analysis](outputs/figures/eda_05_churn_rate_analysis.png)
+> Churn analysis per tier shows **Member tier has a 57.9% churn rate**, in stark contrast to Platinum which is only **3.3%**. This inverse relationship between tier and churn confirms the importance of tier upgrade programs as a retention strategy.
 
-### 5. K-Means mendeteksi 5 cluster yang bermakna secara bisnis
-> Final K-Means (k=5) menghasilkan **ARI 0.485** moderate alignment dengan ground truth. Cluster 1 ("Champions") memiliki recency 7 hari, frequency 22x/bulan, monetary ~Rp 1.7 juta; Cluster 3 ("Lost Customers") memiliki recency 258 hari dan frequency 0x/bulan, membuktikan clustering menangkap pola perilaku yang nyata.
+### 5. K-Means detects 5 business-meaningful clusters
+![Elbow Silhouette](outputs/figures/elbow_silhouette.png)
+![Ari](outputs/figures/ari.png)
+> Final K-Means (k=5) yields **ARI 0.485** moderate alignment with ground truth. Cluster 1 ("Champions") has a recency of 7 days, frequency of 22x/month, monetary ~Rp 1.7 million; Cluster 3 ("Lost Customers") has recency of 258 days and frequency of 0x/month, proving that clustering captures real behavioral patterns.
 
-### 6. Model ML kompetitif dan konsisten
-> Ketiga model menunjukkan performa yang sangat kompetitif dan konsisten: Logistic Regression (AUC 0.842), Random Forest (F1 0.694), XGBoost (AUC 0.838, F1 0.689). **Random Forest memiliki akurasi tertinggi (78.0%)** sementara **Logistic Regression memimpin AUC-ROC (0.842)**. XGBoost dipilih sebagai model final karena balance terbaik antar metrik.
+### 6. ML models are competitive and consistent
+![Model Comparison](outputs/figures/model_comparison.png)
+> All three models show highly competitive and consistent performance: Logistic Regression (AUC 0.842), Random Forest (F1 0.694), XGBoost (AUC 0.838, F1 0.689). **Random Forest has the highest accuracy (78.0%)** while **Logistic Regression leads in AUC-ROC (0.842)**. XGBoost was selected as the final model due to its best balance across all metrics.
 
 ---
 
 ## 👥 Segment Profiles
 
-Berdasarkan hasil rule-based RFM segmentation dari notebook 04:
+Based on the results of rule-based RFM segmentation from notebook 04:
 
-| Segmen | Users (%) | Churn Rate | Avg Recency | Avg Freq/bln | Avg Monetary | Churn Rate (Tier Member) |
+| Segment | Users (%) | Churn Rate | Avg Recency | Avg Freq/month | Avg Monetary | Churn Rate (Member Tier) |
 |---|---|---|---|---|---|---|
-| 🏆 **Champions** | 1,500 (17.7%) | ~3% | 1–14 hari | 15–30x | Rp 800K–2.5Jt | N/A (dominan Platinum) |
-| 💙 **Loyal** | 2,200 (22.1%) | ~10% | 7–30 hari | 8–15x | Rp 300K–800K | 40.9% Silver |
-| ⚠️ **At_Risk** | 1,020 (10.2%) | ~46% | 45–90 hari | 2–6x | Rp 100K–350K | 60.3% Silver |
-| 🌱 **Promising** | 1,110 (11.1%) | ~26% | 3–21 hari | 3–8x | Rp 80K–250K | 68.9% Member |
-| 😴 **Hibernating** | 3,890 (38.9%) | **~85%** | 90–365 hari | 0–1x | Rp 0–80K | 70.0% Member |
+| 🏆 **Champions** | 1,500 (17.7%) | ~3% | 1–14 days | 15–30x | Rp 800K–2.5M | N/A (predominantly Platinum) |
+| 💙 **Loyal** | 2,200 (22.1%) | ~10% | 7–30 days | 8–15x | Rp 300K–800K | 40.9% Silver |
+| ⚠️ **At_Risk** | 1,020 (10.2%) | ~46% | 45–90 days | 2–6x | Rp 100K–350K | 60.3% Silver |
+| 🌱 **Promising** | 1,110 (11.1%) | ~26% | 3–21 days | 3–8x | Rp 80K–250K | 68.9% Member |
+| 😴 **Hibernating** | 3,890 (38.9%) | **~85%** | 90–365 days | 0–1x | Rp 0–80K | 70.0% Member |
 
-> **Catatan penting:** Distribusi segmen rule-based berbeda dari ground truth desain awal karena scoring quartile yang dinamis. Hibernating mendominasi karena proporsi besar user dengan recency tinggi, sementara Champions menjadi lebih besar dari 15% karena threshold scoring.
+> **Important note:** The rule-based segment distribution differs from the initial ground truth design due to dynamic quartile scoring. Hibernating dominates because of the large proportion of users with high recency, while Champions becomes larger than 15% due to scoring thresholds.
 
 ---
 
 ## 📊 Recommendations
 
-Berdasarkan analisis churn rate per segmen, tier, dan profil SHAP:
+Based on churn rate analysis per segment, tier, and SHAP profile:
 
-| Prioritas | Segmen | Insight dari Data | Aksi yang Direkomendasikan | Estimated Impact |
+| Priority | Segment | Insight from Data | Recommended Action | Estimated Impact |
 |---|---|---|---|---|
-| **P1** | ⚠️ At_Risk | Churn rate 46%, recency 45–90 hari, masih di Silver/Gold tier | Alert "OVO Points expired dalam 30 hari" + voucher GrabFood 25% off | Recovery 25% At_Risk users |
-| **P1** | 😴 Hibernating | Churn rate 85%, 70% di Member tier, recency 90–365 hari | Win-back campaign hanya untuk high-value historical (monetary > Rp 500K); skip low-value karena cost > benefit | Fokus 20% Hibernating bernilai tinggi |
-| **P2** | 💙 Loyal | Churn rate 10%, 40.9% di Silver tier potensial tier upgrade | Push notif "X poin lagi menuju Gold" + weekly challenge berbasis frequency | 20% upgrade ke Gold tier dalam 90 hari |
-| **P2** | 🌱 Promising | Churn rate 26%, rata-rata 1–2 layanan digunakan | "Coba GrabMart, dapat 2x poin minggu ini" dorong multi-service adoption | Target ≥3 layanan dalam 60 hari; n_services = top SHAP feature |
-| **P3** | 🏆 Champions | Churn rate hanya 3%, dominan di Platinum/Gold | Early access fitur baru + monthly double-points event + personal appreciation notification | Pertahankan 97%+ retention rate |
+| **P1** | ⚠️ At_Risk | Churn rate 46%, recency 45–90 days, still in Silver/Gold tier | Alert "OVO Points expiring in 30 days" + 25% off GrabFood voucher | Recovery of 25% At_Risk users |
+| **P1** | 😴 Hibernating | Churn rate 85%, 70% in Member tier, recency 90–365 days | Win-back campaign only for high-value historical users (monetary > Rp 500K); skip low-value as cost > benefit | Focus on top 20% high-value Hibernating |
+| **P2** | 💙 Loyal | Churn rate 10%, 40.9% in Silver tier potential tier upgrade | Push notification "X more points to reach Gold" + weekly frequency-based challenge | 20% upgrade to Gold tier within 90 days |
+| **P2** | 🌱 Promising | Churn rate 26%, average 1–2 services used | "Try GrabMart, earn 2x points this week" push multi-service adoption | Target ≥3 services within 60 days; n_services = top SHAP feature |
+| **P3** | 🏆 Champions | Churn rate only 3%, predominantly Platinum/Gold | Early access to new features + monthly double-points event + personal appreciation notification | Maintain 97%+ retention rate |
 
 ---
 
 ## 🗂️ Dataset
 
-Dataset ini merupakan **synthetic dataset** yang dirancang untuk mensimulasikan perilaku nyata pengguna loyalty program. Distribusi parameter setiap segmen mengacu pada pola yang dipublikasikan dalam literatur loyalty program dan customer churn research.
+This dataset is a **synthetic dataset** designed to simulate real user behavior in a loyalty program. The distribution parameters for each segment are based on patterns published in loyalty program and customer churn research literature.
 
-### Spesifikasi dataset aktual (dari notebook 01 & 02)
+### Actual dataset specifications (from notebooks 01 & 02)
 
 | Attribute | Detail |
 |---|---|
-| Jumlah user | 10.000 |
-| Jumlah kolom | 12 |
-| Churn rate keseluruhan | **34.4%** (bukan 32% seperti desain awal karena noise realistis) |
-| Duplikat | 0 (dataset bersih) |
+| Number of users | 10,000 |
+| Number of columns | 12 |
+| Overall churn rate | **34.4%** (not 32% as in the initial design, due to realistic noise) |
+| Duplicates | 0 (clean dataset) |
 | Missing values | 0 (100% complete) |
-| Tanggal referensi | 1 Januari 2025 |
+| Reference date | January 1, 2025 |
 | Format | CSV (`rewards_synthetic.csv`) |
 
-### Distribusi segmen ground truth (desain awal)
+### Ground truth segment distribution (initial design)
 
 ```
 Champions    ████████████████░░░░░░░░░░░░░░░░  15%  (1,500 users)
@@ -157,9 +164,9 @@ Promising    ████████████████████░░�
 Hibernating  ████████████████████░░░░░░░░░░░░  20%  (2,000 users)
 ```
 
-### Statistik deskriptif variabel numerik (dari notebook 02)
+### Descriptive statistics for numeric variables (from notebook 02)
 
-| Kolom | Mean | Std | Min | Median | Max |
+| Column | Mean | Std | Min | Median | Max |
 |---|---|---|---|---|---|
 | `recency_days` | 66.65 | 90.36 | 1 | 21 | 364 |
 | `frequency_monthly` | 7.75 | 7.44 | 0 | 5 | 29 |
@@ -167,26 +174,26 @@ Hibernating  ████████████████████░░�
 | `ovo_points_balance` | 4,706 | 5,683 | 0 | 2,457 | 29,901 |
 | `n_services` | 2.10 | 1.01 | 1 | 2 | 4 |
 
-### Kolom Utama
+### Main Columns
 
-Berikut adalah rincian kolom utama dalam dataset beserta penjelasan analitis, spesifikasi teknis, relevansinya terhadap pemodelan, serta landasan ilmiah yang mendukung penggunaannya:
+Below are the main columns in the dataset along with their analytical explanations, technical specifications, relevance to modeling, and the scientific basis supporting their use:
 
-| Parameter / Atribut | Penjelasan Analitis | Tipe Data | Distribusi / Range Nilai | Relevansi ke Model | Sumber & Sitasi + Link |
+| Parameter / Attribute | Analytical Explanation | Data Type | Distribution / Value Range | Relevance to Model | Source References |
 |---|---|---|---|---|---|
-| `user_id` | Kunci primer unik pelanggan dalam database CRM untuk melacak perilaku secara longitudinal dan menyaring noise transaksi anonim demi akurasi estimasi CLV. | `Object / String` | 10.000 record unik (`USR000000` s.d `USR009999`) | Dieksklusi dari fitur model untuk mencegah *target leakage*, namun dipertahankan sebagai indeks pasca-klasifikasi untuk penargetan retensi. | **Ref:** Case Study on Academic Analytics. (2025). *RFM-Based Customer Segmentation.* [Journal of Marketing Analytics](https://www.hostjournals.com/jimat/article/download/964/637) · Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), hlm. 128–134. |
-| `segment_true` | Label segmen perilaku laten (Champions, Loyal, At Risk, Promising, Hibernating) sebagai *ground truth* untuk memvalidasi hasil K-Means terhadap segmentasi berbasis aturan. | `Categorical / Nominal` | Champions (n=1500), Loyal (n=2500), At Risk (n=2000), Promising (n=2000), Hibernating (n=2000) | Tidak digunakan sebagai fitur prediktif, melainkan sebagai *ground truth label* pembanding performa K-Means (Adjusted Rand Index: **0.74**). | **Ref:** Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), hlm. 128–134. · Handojo, A., et al. (2023). *A multi layer RFM method.* [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) |
-| `last_tx_date` | Tanggal transaksi terakhir pelanggan sebagai acuan temporal untuk melacak pergeseran perilaku dan basis kalkulasi durasi ketidakaktifan. | `Date (YYYY-MM-DD)` | 1 Jan 2024 s.d 31 Des 2024 (dihitung mundur dari benchmark 1 Jan 2025) | Digunakan untuk menghitung `recency_days`. Dinonaktifkan dari input model XGBoost demi menjaga stasioneritas, namun krusial untuk analisis kohort bulanan. | **Ref:** Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), hlm. 128–134. · Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) |
-| `recency_days` | Jumlah hari sejak transaksi terakhir hingga hari observasi. Proksi utama *attrition risk* — pengguna tidak aktif beralih ke kompetitor tanpa pembatalan resmi. | `Integer / Discrete` | 1–365 hari — Champions: 1–14 · Loyal: 7–30 · At Risk: 45–90 · Promising: 3–21 · Hibernating: 90–365 | Prediktor terpenting XGBoost & Random Forest (**SHAP value: 0.42**). Kenaikan `recency_days` berkorelasi langsung dengan probabilitas churn. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
-| `frequency_monthly` | Jumlah transaksi selesai per bulan sebagai proksi *habitual engagement* — pengguna berfrekuensi tinggi mengintegrasikan aplikasi ke rutinitas harian. | `Integer / Discrete` | 0–30 transaksi — Champions: 15–30x · Loyal: 8–15x · At Risk: 2–6x · Promising: 3–8x · Hibernating: 0–1x | Fitur input utama. Tren penurunan frekuensi bulanan menjadi *early warning indicator* terjadinya *silent churn*. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
-| `monetary_monthly` | Total pengeluaran bulanan pelanggan sebagai ukuran kontribusi langsung terhadap *gross revenue* dan estimasi kerugian jika terjadi churn (*Revenue at Risk*). | `Float / Continuous` | Rp 0–2.500.000/bulan — Champions: Rp 800rb–2,5jt · Loyal: Rp 300rb–800rb · At Risk: Rp 100rb–350rb · Promising: Rp 80rb–250rb · Hibernating: Rp 0–80rb | Menghubungkan output klasifikasi ML dengan dampak finansial nyata untuk menghitung total *revenue at risk* per segmen. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
-| `ovo_points_balance` | Saldo poin OVO terakumulasi. Berdasarkan *Goal-Gradient Hypothesis*, saldo aktif mendorong transaksi berulang (*purchase acceleration*) agar poin tidak hangus. | `Integer / Discrete` | 0–~30.000 poin (monetary × cashback 1% × variansi 0.8–1.2) | Fitur input penting (**SHAP value: 0.14**). Saldo poin tinggi berkorelasi negatif dengan churn karena efek *loss aversion*. | **Ref:** Anugrah, F. T. (2020). [QEMS, 1(1), hlm. 44–50](https://qemsjournal.org/index.php/qems/article/view/77) · Kivetz, R., et al. (2006). *The Goal-Gradient Hypothesis Resurrected.* Journal of Marketing Research, 43, hlm. 39–58. |
-| `tier` | Status keanggotaan bertingkat (Member, Silver, Gold, Platinum). Status elite memicu *social recognition* dan *loss aversion* yang mendorong konsentrasi pengeluaran di satu ekosistem. | `Categorical / Ordinal` | Member (≤ Rp200rb) · Silver (> Rp200rb) · Gold (> Rp600rb) · Platinum (> Rp1,5jt) | Digunakan sebagai `tier_encoded` (**SHAP value: 0.11**). Status Gold/Platinum berkorelasi positif dengan retensi jangka panjang. | **Ref:** Leong, P. H., et al. (2022). *Tiered Loyalty Membership Program via Behavioural Science.* [ResearchGate](https://www.researchgate.net/publication/362600847) |
-| `services_used` | Daftar layanan Super App yang digunakan (GrabBike, GrabCar, GrabFood, GrabMart, GrabExpress) sebagai indikator *cross-buying behavior* untuk mengukur keterikatan ekosistem. | `Pipe-delimited String` | 1–4 layanan unik per pengguna. Contoh: `GrabBike\|GrabFood\|GrabMart` | Diproses via **One-Hot Encoding** menjadi kolom biner 0/1 per layanan untuk menangkap kontribusi tiap vertikal terhadap keaktifan harian. | **Ref:** Reinartz, W., Thomas, J. S., & Bascoul, G. (2008). *Investigating Cross-Buying and Customer Loyalty.* [Journal of Interactive Marketing, 22(1)](https://onlinelibrary.wiley.com/doi/abs/10.1002/dir.20103) |
-| `n_services` | Jumlah layanan unik yang digunakan sebagai ukuran *ecosystem lock-in* — semakin banyak layanan, semakin tinggi *switching cost* ke kompetitor. | `Integer / Discrete` | 1–4 layanan unik | Prediktor terkuat kedua (**SHAP value: 0.28**). Pengguna `n_services >= 3` memiliki risiko churn **3.2x lebih rendah** dibanding pengguna 1 layanan. | **Ref:** Gelici, M. B. (2021). *Superapp: Asian Super Apps in Western Markets.* [Univ. of Twente Thesis](https://essay.utwente.nl/fileshare/file/90608/M-BA-Gelici-Superapp.pdf) · *Customer Retention in Digital Platforms.* (2026). [Transport Economics & Policy Journal](https://www.researchgate.net/publication/402062417) |
-| `city` | Kota domisili pelanggan (Jakarta, Bandung, Surabaya, Medan, Bekasi) untuk mengontrol faktor spasial, infrastruktur lokal, dan *Purchasing Power Parity* regional. | `Categorical / Nominal` | Jakarta (45%) · Bandung (15%) · Surabaya (15%) · Bekasi (15%) · Medan (10%) | Fitur kategorikal (one-hot encoded) untuk mendeteksi bias geografis, misalnya fluktuasi churn di Jakarta akibat persaingan promo yang lebih agresif. | **Ref:** *Evaluating ride-hailing adoption in emerging markets: Yogyakarta, Indonesia.* (2025). Transport Economics and Policy Journal. |
-| `churn_label` | Label biner status atrisi (1 = churn, 0 = aktif). Churn didefinisikan sebagai ketiadaan transaksi selama **90 hari terakhir** — batas industri standar untuk platform non-kontraktual. | `Binary (0 atau 1)` | ~32% churn dari 10.000 record | **Variabel target** untuk supervised learning — melatih XGBoost, Random Forest, dan Logistic Regression dalam memprediksi churn. | **Ref:** Smail, M. Y., & Asri, A. (2025). *Predictive Models for Customer Churn in Ride-Hailing.* [Revue d'économie, 21(1), hlm. 131–144](https://asjp.cerist.dz/en/article/279460) · Boukrouh, I., & Azmani, A. (2025). IJAI, 14(1), hlm. 286–297. |
+| `user_id` | Unique primary key for each customer in the CRM database to longitudinally track behavior and filter anonymous transaction noise for accurate CLV estimation. | `Object / String` | 10,000 unique records (`USR000000` to `USR009999`) | Excluded from model features to prevent *target leakage*, but retained as a post-classification index for retention targeting. | **Ref:** Case Study on Academic Analytics. (2025). *RFM-Based Customer Segmentation.* [Journal of Marketing Analytics](https://www.hostjournals.com/jimat/article/download/964/637) · Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), pp. 128–134. |
+| `segment_true` | Latent behavioral segment label (Champions, Loyal, At Risk, Promising, Hibernating) as *ground truth* to validate K-Means results against rule-based segmentation. | `Categorical / Nominal` | Champions (n=1500), Loyal (n=2500), At Risk (n=2000), Promising (n=2000), Hibernating (n=2000) | Not used as a predictive feature, but as a *ground truth label* to compare K-Means performance (Adjusted Rand Index: **0.74**). | **Ref:** Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), pp. 128–134. · Handojo, A., et al. (2023). *A multi layer RFM method.* [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) |
+| `last_tx_date` | Date of the customer's last transaction as a temporal reference to track behavioral shifts and the basis for calculating inactivity duration. | `Date (YYYY-MM-DD)` | Jan 1, 2024 to Dec 31, 2024 (counted backward from the Jan 1, 2025 benchmark) | Used to calculate `recency_days`. Disabled from XGBoost model input to maintain stationarity, but crucial for monthly cohort analysis. | **Ref:** Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), pp. 128–134. · Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) |
+| `recency_days` | Number of days since the last transaction to the observation date. The primary proxy for *attrition risk* — inactive users switch to competitors without any formal cancellation. | `Integer / Discrete` | 1–365 days — Champions: 1–14 · Loyal: 7–30 · At Risk: 45–90 · Promising: 3–21 · Hibernating: 90–365 | Most important predictor in XGBoost & Random Forest (**SHAP value: 0.42**). An increase in `recency_days` directly correlates with higher churn probability. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
+| `frequency_monthly` | Number of completed transactions per month as a proxy for *habitual engagement* — high-frequency users integrate the app into their daily routine. | `Integer / Discrete` | 0–30 transactions — Champions: 15–30x · Loyal: 8–15x · At Risk: 2–6x · Promising: 3–8x · Hibernating: 0–1x | Primary input feature. A declining monthly frequency trend becomes an *early warning indicator* of *silent churn*. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
+| `monetary_monthly` | Total monthly customer spending as a measure of direct contribution to *gross revenue* and estimated loss in the event of churn (*Revenue at Risk*). | `Float / Continuous` | Rp 0–2,500,000/month — Champions: Rp 800K–2.5M · Loyal: Rp 300K–800K · At Risk: Rp 100K–350K · Promising: Rp 80K–250K · Hibernating: Rp 0–80K | Links ML classification output with real financial impact to calculate total *revenue at risk* per segment. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
+| `ovo_points_balance` | Accumulated OVO points balance. Based on the *Goal-Gradient Hypothesis*, an active balance encourages repeat transactions (*purchase acceleration*) to prevent points from expiring. | `Integer / Discrete` | 0–~30,000 points (monetary × 1% cashback × 0.8–1.2 variance) | Important input feature (**SHAP value: 0.14**). A high points balance is negatively correlated with churn due to the *loss aversion* effect. | **Ref:** Anugrah, F. T. (2020). [QEMS, 1(1), pp. 44–50](https://qemsjournal.org/index.php/qems/article/view/77) · Kivetz, R., et al. (2006). *The Goal-Gradient Hypothesis Resurrected.* Journal of Marketing Research, 43, pp. 39–58. |
+| `tier` | Tiered membership status (Member, Silver, Gold, Platinum). Elite status triggers *social recognition* and *loss aversion* that drives concentration of spending within a single ecosystem. | `Categorical / Ordinal` | Member (≤ Rp200K) · Silver (> Rp200K) · Gold (> Rp600K) · Platinum (> Rp1.5M) | Used as `tier_encoded` (**SHAP value: 0.11**). Gold/Platinum status positively correlates with long-term retention. | **Ref:** Leong, P. H., et al. (2022). *Tiered Loyalty Membership Program via Behavioural Science.* [ResearchGate](https://www.researchgate.net/publication/362600847) |
+| `services_used` | List of Super App services used (GrabBike, GrabCar, GrabFood, GrabMart, GrabExpress) as an indicator of *cross-buying behavior* to measure ecosystem engagement. | `Pipe-delimited String` | 1–4 unique services per user. Example: `GrabBike\|GrabFood\|GrabMart` | Processed via **One-Hot Encoding** into binary 0/1 columns per service to capture each vertical's contribution to daily activity. | **Ref:** Reinartz, W., Thomas, J. S., & Bascoul, G. (2008). *Investigating Cross-Buying and Customer Loyalty.* [Journal of Interactive Marketing, 22(1)](https://onlinelibrary.wiley.com/doi/abs/10.1002/dir.20103) |
+| `n_services` | Number of unique services used as a measure of *ecosystem lock-in* — the more services used, the higher the *switching cost* to competitors. | `Integer / Discrete` | 1–4 unique services | Second strongest predictor (**SHAP value: 0.28**). Users with `n_services >= 3` have a churn risk **3.2x lower** than single-service users. | **Ref:** Gelici, M. B. (2021). *Superapp: Asian Super Apps in Western Markets.* [Univ. of Twente Thesis](https://essay.utwente.nl/fileshare/file/90608/M-BA-Gelici-Superapp.pdf) · *Customer Retention in Digital Platforms.* (2026). [Transport Economics & Policy Journal](https://www.researchgate.net/publication/402062417) |
+| `city` | Customer's city of residence (Jakarta, Bandung, Surabaya, Medan, Bekasi) to control for spatial factors, local infrastructure, and regional *Purchasing Power Parity*. | `Categorical / Nominal` | Jakarta (45%) · Bandung (15%) · Surabaya (15%) · Bekasi (15%) · Medan (10%) | Categorical feature (one-hot encoded) to detect geographic bias, e.g., churn fluctuations in Jakarta due to more aggressive promotional competition. | **Ref:** *Evaluating ride-hailing adoption in emerging markets: Yogyakarta, Indonesia.* (2025). Transport Economics and Policy Journal. |
+| `churn_label` | Binary attrition status label (1 = churn, 0 = active). Churn is defined as the absence of transactions for the **last 90 days** — the industry standard threshold for non-contractual platforms. | `Binary (0 or 1)` | ~32% churn from 10,000 records | **Target variable** for supervised learning — training XGBoost, Random Forest, and Logistic Regression to predict churn. | **Ref:** Smail, M. Y., & Asri, A. (2025). *Predictive Models for Customer Churn in Ride-Hailing.* [Revue d'économie, 21(1), pp. 131–144](https://asjp.cerist.dz/en/article/279460) · Boukrouh, I., & Azmani, A. (2025). IJAI, 14(1), pp. 286–297. |
 
-> **Transparansi data:** Dataset ini adalah data simulasi, bukan data internal Grab. Metodologi pembuatan dataset terdokumentasi sepenuhnya di `notebooks/01_data_generation.ipynb`.
+> **Data transparency:** This dataset is simulated data, not internal Grab data. The dataset creation methodology is fully documented in `notebooks/01_data_generation.ipynb`.
 
 ---
 
@@ -195,22 +202,22 @@ Berikut adalah rincian kolom utama dalam dataset beserta penjelasan analitis, sp
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  01 · Data Generation                                        │
-│  Generate 10.000 synthetic users dengan 5 segmen tersembunyi│
-│  Churn rate aktual: 34.4% · Output: rewards_synthetic.csv   │
+│  Generate 10,000 synthetic users with 5 hidden segments     │
+│  Actual churn rate: 34.4% · Output: rewards_synthetic.csv   │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  02 · Data Understanding                                     │
-│  Shape: 10.000 × 12 · 0 duplikat · 0 missing values        │
-│  Statistik deskriptif · distribusi tier & kota              │
+│  Shape: 10,000 × 12 · 0 duplicates · 0 missing values      │
+│  Descriptive statistics · tier & city distribution          │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  03 · EDA                                                    │
-│  7 visualisasi: segment dist, RFM histogram, boxplot,       │
-│  categorical dist, churn rate (segmen/tier/kota),           │
+│  7 visualizations: segment dist, RFM histogram, boxplot,    │
+│  categorical dist, churn rate (segment/tier/city),          │
 │  churn composition stacked bar, correlation heatmap         │
 └──────────────────────────┬──────────────────────────────────┘
                            │
@@ -237,19 +244,19 @@ Berikut adalah rincian kolom utama dalam dataset beserta penjelasan analitis, sp
 
 ## 📓 Notebooks
 
-| Notebook | Deskripsi | Output utama |
+| Notebook | Description | Main Output |
 |---|---|---|
-| `01_data_generation.ipynb` | Generate synthetic dataset 10.000 users dengan 5 segmen tersembunyi (Champions 15%, Loyal 25%, At_Risk 20%, Promising 20%, Hibernating 20%). Churn rate aktual: 34.4% | `data/raw/rewards_synthetic.csv` |
-| `02_data_understanding.ipynb` | Validasi kualitas data: 0 duplikat, 0 missing values, statistik deskriptif, struktur kolom, distribusi dasar | Tidak ada output file analisis in-notebook |
-| `03_EDA.ipynb` | 7 visualisasi sistematis: distribusi segmen, RFM histogram per segmen, boxplot outlier detection, distribusi tier & kota, churn rate analysis (3 sudut pandang), stacked composition, correlation heatmap | `outputs/figures/eda_01` s.d `eda_07` (7 PNG) |
-| `04_rfm_segmentation.ipynb` | RFME quartile scoring, rule-based 5-segmen labeling, K-Means elbow + silhouette (best k=2 score 0.542, pilih k=5), ARI 0.485, radar chart, segment × tier heatmap | `data/processed/rfm_scores.csv` · 3 figures |
-| `05_churn_prediction.ipynb` | 16 features, train-test split 80/20 stratified, 3 model training, comparison table, ROC curves, confusion matrix, SHAP global importance + waterfall At-Risk user (churn prob 70.9%) | `models/xgboost_churn_final.pkl` · `models/scaler.pkl` · `data/processed/features_final.csv` · 3 figures |
+| `01_data_generation.ipynb` | Generate synthetic dataset of 10,000 users with 5 hidden segments (Champions 15%, Loyal 25%, At_Risk 20%, Promising 20%, Hibernating 20%). Actual churn rate: 34.4% | `data/raw/rewards_synthetic.csv` |
+| `02_data_understanding.ipynb` | Data quality validation: 0 duplicates, 0 missing values, descriptive statistics, column structure, basic distributions | No file output — analysis conducted in-notebook |
+| `03_EDA.ipynb` | 7 systematic visualizations: segment distribution, RFM histogram per segment, boxplot outlier detection, tier & city distribution, churn rate analysis (3 perspectives), stacked composition, correlation heatmap | `outputs/figures/eda_01` to `eda_07` (7 PNGs) |
+| `04_rfm_segmentation.ipynb` | RFME quartile scoring, rule-based 5-segment labeling, K-Means elbow + silhouette (best k=2 score 0.542, select k=5), ARI 0.485, radar chart, segment × tier heatmap | `data/processed/rfm_scores.csv` · 3 figures |
+| `05_churn_prediction.ipynb` | 16 features, 80/20 stratified train-test split, 3 model trainings, comparison table, ROC curves, confusion matrix, SHAP global importance + waterfall for At-Risk user (churn prob 70.9%) | `models/xgboost_churn_final.pkl` · `models/scaler.pkl` · `data/processed/features_final.csv` · 3 figures |
 
 ---
 
 ## 🤖 Model Performance
 
-### Hasil aktual dari notebook 05
+### Actual results from notebook 05
 
 | Model | Accuracy | F1 (Churn) | AUC-ROC | Precision | Recall |
 |---|---|---|---|---|---|
@@ -257,16 +264,16 @@ Berikut adalah rincian kolom utama dalam dataset beserta penjelasan analitis, sp
 | **Random Forest** | **78.0%** | **0.694** | 0.839 | 0.664 | 0.728 |
 | XGBoost ✓ | 77.3% | 0.689 | 0.838 | 0.651 | 0.731 |
 
-**Model terpilih: XGBoost** dipilih karena balance terbaik antar semua metrik, native support untuk class imbalance via `scale_pos_weight`, dan kompatibilitas penuh dengan SHAP TreeExplainer untuk interpretabilitas.
+**Selected model: XGBoost** was chosen due to its best balance across all metrics, native support for class imbalance via `scale_pos_weight`, and full compatibility with SHAP TreeExplainer for interpretability.
 
-> ⚠️ **Koreksi dari README sebelumnya:** Angka AUC-ROC 0.93 dan F1 0.88 yang tercantum sebelumnya adalah target/ekspektasi, **bukan angka aktual**. Hasil aktual dari notebook menunjukkan performa yang lebih realistis: AUC-ROC 0.838 dan F1 0.689 masih merupakan performa yang solid untuk dataset synthetic dengan 16 fitur.
+> ⚠️ **Correction from previous README:** The AUC-ROC of 0.93 and F1 of 0.88 listed previously were targets/expectations, **not actual figures**. Actual results from the notebook show more realistic performance: AUC-ROC 0.838 and F1 0.689 are still solid performance numbers for a synthetic dataset with 16 features.
 
-### Classification Report XGBoost (dari notebook 05)
+### Classification Report XGBoost (from notebook 05)
 
 ```
               precision    recall  f1-score   support
 
-       Aktif       0.85      0.80      0.82      1313
+      Active       0.85      0.80      0.82      1313
        Churn       0.65      0.73      0.69       687
 
     accuracy                           0.77      2000
@@ -285,11 +292,11 @@ tier_encoded        ██░░░░░░░░░░░░░░░░░░
 n_services          ██░░░░░░░░░░░░░░░░░░░░░░  near-zero global (but contextually important)
 ```
 
-**SHAP Waterfall: Contoh At-Risk user:**
-- Churn probability: **70.9%** (naik dari baseline 0.395)
-- `recency_days` = 49 hari → +0.15 (kontribusi terbesar)
-- `spend_trend` = -31,310 → +0.09 (spending menurun)
-- `n_services` = 1 → -0.02 (sedikit menahan churn)
+**SHAP Waterfall: Example At-Risk user:**
+- Churn probability: **70.9%** (up from baseline 0.395)
+- `recency_days` = 49 days → +0.15 (largest contribution)
+- `spend_trend` = -31,310 → +0.09 (declining spending)
+- `n_services` = 1 → -0.02 (slightly inhibits churn)
 
 ---
 
@@ -314,7 +321,7 @@ ride-hailing-loyalty-program/
 │
 ├── data/
 │   ├── raw/
-│   │   └── rewards_synthetic.csv          # Dataset utama (10K users, 12 cols)
+│   │   └── rewards_synthetic.csv          # Main dataset (10K users, 12 cols)
 │   └── processed/
 │       ├── rfm_scores.csv                 # RFME scores + segment labels (10K × 20 cols)
 │       └── features_final.csv            # Feature matrix test set + predictions (2K × 16 cols)
@@ -322,7 +329,7 @@ ride-hailing-loyalty-program/
 ├── notebooks/
 │   ├── 01_data_generation.ipynb          # Synthetic data generator
 │   ├── 02_data_understanding.ipynb       # Data quality & structure check
-│   ├── 03_EDA.ipynb                      # 7 visualisasi EDA sistematis
+│   ├── 03_EDA.ipynb                      # 7 systematic EDA visualizations
 │   ├── 04_rfm_segmentation.ipynb         # RFME scoring + K-Means (ARI 0.485)
 │   └── 05_churn_prediction.ipynb         # 3 models + SHAP (XGBoost AUC 0.838)
 │
@@ -375,16 +382,16 @@ python -m pip install -r requirements.txt
 python -m ipykernel install --user --name=venv_grabrewards --display-name "Python (GrabRewards)"
 ```
 
-### 3. Jalankan pipeline secara berurutan
+### 3. Run the pipeline sequentially
 
 ```bash
-# Buka Jupyter atau gunakan VS Code dengan kernel venv_grabrewards
+# Open Jupyter or use VS Code with the venv_grabrewards kernel
 jupyter notebook
 
-# Urutan eksekusi:
+# Execution order:
 # notebooks/01_data_generation.ipynb      → generate rewards_synthetic.csv
-# notebooks/02_data_understanding.ipynb   → validasi kualitas data
-# notebooks/03_EDA.ipynb                  → 7 visualisasi EDA
+# notebooks/02_data_understanding.ipynb   → validate data quality
+# notebooks/03_EDA.ipynb                  → 7 EDA visualizations
 # notebooks/04_rfm_segmentation.ipynb     → RFME scoring + K-Means
 # notebooks/05_churn_prediction.ipynb     → 3 models + SHAP
 ```
@@ -410,20 +417,20 @@ ipykernel>=6.0
 
 ### Limitations
 
-- **Data sintetis:** Dataset adalah simulasi berbasis distribusi dari literatur bukan data internal Grab. Churn rate aktual (34.4%) sedikit berbeda dari target desain (32%) karena noise realistis yang dimasukkan saat generation.
-- **SHAP PermutationExplainer:** Karena menggunakan `shap.Explainer` dengan fungsi prediksi (bukan `TreeExplainer` langsung), kalkulasi SHAP membutuhkan waktu ~13 menit untuk 2.001 sampel. Untuk production, gunakan `TreeExplainer` langsung.
-- **Performa model moderat:** AUC-ROC 0.838 dan F1 0.689 mencerminkan kompleksitas data synthetic dengan banyak overlap antar segmen. Dengan fitur behavioral yang lebih kaya (histori promo, session data), performa bisa meningkat signifikan.
-- **No temporal validation:** Model divalidasi secara cross-sectional; validasi time-series (walk-forward) belum diterapkan.
+- **Synthetic data:** The dataset is a distribution-based simulation from the literature — not internal Grab data. The actual churn rate (34.4%) differs slightly from the design target (32%) due to realistic noise introduced during generation.
+- **SHAP PermutationExplainer:** Because `shap.Explainer` is used with a prediction function (not directly `TreeExplainer`), SHAP calculation takes ~13 minutes for 2,001 samples. For production, use `TreeExplainer` directly.
+- **Moderate model performance:** AUC-ROC 0.838 and F1 0.689 reflect the complexity of synthetic data with significant overlap between segments. With richer behavioral features (promo history, session data), performance could improve significantly.
+- **No temporal validation:** The model was validated cross-sectionally; time-series validation (walk-forward) has not been applied.
 
-### Potential next steps (jika ada data real)
+### Potential next steps (if real data is available)
 
-| Ekstensi | Deskripsi |
+| Extension | Description |
 |---|---|
-| **CLV Prediction** | Prediksi Customer Lifetime Value per segmen menggunakan BG/NBD model |
-| **Next-Best-Offer** | Recommendation engine: reward apa yang paling mungkin mencegah churn per user |
-| **Survival Analysis** | Cox Proportional Hazards untuk estimasi waktu sampai churn, bukan hanya probabilitas binary |
-| **Real-time scoring** | Deploy XGBoost model sebagai API endpoint untuk scoring churn risk harian |
-| **IndoBERT integration** | Analisis sentimen review app store untuk enrich fitur behavioral dengan voice-of-customer signal |
+| **CLV Prediction** | Predict Customer Lifetime Value per segment using the BG/NBD model |
+| **Next-Best-Offer** | Recommendation engine: which reward is most likely to prevent churn per user |
+| **Survival Analysis** | Cox Proportional Hazards to estimate time until churn, not just binary probability |
+| **Real-time scoring** | Deploy XGBoost model as an API endpoint for daily churn risk scoring |
+| **IndoBERT integration** | App store review sentiment analysis to enrich behavioral features with voice-of-customer signals |
 
 ---
 
