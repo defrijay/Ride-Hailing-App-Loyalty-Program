@@ -37,7 +37,7 @@ This project analyzes **10,000 Ride Hailing App users** using an end-to-end appr
 
 **3 main findings:**
 - 📍 **Hibernating** (38.9% of the user base) is the largest segment; the majority are already inactive and require an immediate win-back strategy.
-- 📍 **recency_days** is the strongest churn predictor (SHAP ≈ 0.14 per instance) — the longer since the last transaction, the higher the churn risk.
+- 📍 **recency_days** is the strongest churn predictor (SHAP mean |SHAP| ≈ 0.42 globally) — the longer since the last transaction, the higher the churn risk.
 - 📍 **XGBoost** was selected as the final model with **AUC-ROC 0.838**, **F1-score 0.689**, successfully capturing **73% of users who actually churned** (Recall = 0.731).
 
 | Metric | Value |
@@ -48,7 +48,8 @@ This project analyzes **10,000 Ride Hailing App users** using an end-to-end appr
 | AUC-ROC | 0.838 |
 | F1-score (churn class) | 0.689 |
 | Recall (churn class) | 0.731 |
-| Top churn predictor | `recency_days` (SHAP ≈ 0.14) |
+| Top churn predictor | `recency_days` (mean \|SHAP\| ≈ 0.42) |
+| 2nd churn predictor | `n_services` (mean \|SHAP\| ≈ 0.28) |
 | Adjusted Rand Index (K-Means) | 0.485 |
 
 ---
@@ -142,7 +143,7 @@ Based on churn rate analysis per segment, tier, SHAP feature importance, and rev
 | **P1** | ⚠️ At_Risk | Churn rate 46%, revenue at risk Rp 208 juta/month, recency 45–90 days; SHAP: recency_days #1 predictor | Alert "OVO Points expiring in 30 days" + 25% off GrabFood voucher; trigger at recency > 45 days | If 25% of 2,000 users recovered (500 users × avg Rp 225K/month) → Rp 112 juta/month recovery potential |
 | **P1** | 😴 Hibernating | Churn rate 85%, but revenue at risk only Rp 69 juta due to near-zero monetary; 70% in Member tier | Win-back campaign **only** for users with historical monetary > Rp 500K (est. top 20% = ~400 users); skip low-value as voucher cost likely exceeds recovery value | Target pool: ~400 users × avg Rp 500K × 15% recovery = Rp 30 juta/month potential; cost-benefit must be validated before scaling |
 | **P2** | 💙 Loyal | Churn rate 10%, revenue at risk Rp 140 juta/month (2nd largest); 40.9% Silver — close to Gold threshold | Push notification "X more points to reach Gold" + weekly frequency-based challenge; tier upgrade reduces churn from ~10% to ~3% (Silver → Gold) | If 20% of 2,210 users upgrade to Gold (442 users): estimated churn reduction saves Rp 28 juta/month at avg Rp 550K spend |
-| **P2** | 🌱 Promising | Churn rate 26%; n_services = SHAP #2 global predictor; avg n_services = 1–2 | "Try GrabMart, earn 2x points this week" — push multi-service adoption; users with n_services ≥ 3 have 3.2× lower churn risk | If 30% of 1,110 users add 1+ service (333 users × churn reduction ~20%) → Rp ~17 juta/month retention gain |
+| **P2** | 🌱 Promising | Churn rate 26%; n_services = SHAP #2 global predictor (mean \|SHAP\| ≈ 0.28); avg n_services = 1–2 | "Try GrabMart, earn 2x points this week" — push multi-service adoption; users with n_services ≥ 3 have 3.2× lower churn risk | If 30% of 1,110 users add 1+ service (333 users × churn reduction ~20%) → Rp ~17 juta/month retention gain |
 | **P3** | 🏆 Champions | Churn rate only 4%, predominantly Platinum/Gold; recency 1–14 days; revenue at risk Rp 80 juta | Early access to new features + monthly double-points event + personal appreciation notification | Maintaining 96%+ retention protects Rp 77 juta/month baseline revenue; minimal intervention cost |
 
 ---
@@ -190,17 +191,17 @@ Below are the main columns in the dataset along with their analytical explanatio
 | Parameter / Attribute | Analytical Explanation | Data Type | Distribution / Value Range | Relevance to Model | Source References |
 |---|---|---|---|---|---|
 | `user_id` | Unique primary key for each customer in the CRM database to longitudinally track behavior and filter anonymous transaction noise for accurate CLV estimation. | `Object / String` | 10,000 unique records (`USR000000` to `USR009999`) | Excluded from model features to prevent *target leakage*, but retained as a post-classification index for retention targeting. | **Ref:** Case Study on Academic Analytics. (2025). *RFM-Based Customer Segmentation.* [Journal of Marketing Analytics](https://www.hostjournals.com/jimat/article/download/964/637) · Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), pp. 128–134. |
-| `segment_true` | Latent behavioral segment label (Champions, Loyal, At Risk, Promising, Hibernating) as *ground truth* to validate K-Means results against rule-based segmentation. | `Categorical / Nominal` | Champions (n=1500), Loyal (n=2500), At Risk (n=2000), Promising (n=2000), Hibernating (n=2000) | Not used as a predictive feature, but as a *ground truth label* to compare K-Means performance (Adjusted Rand Index: **0.74**). | **Ref:** Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), pp. 128–134. · Handojo, A., et al. (2023). *A multi layer RFM method.* [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) |
+| `segment_true` | Latent behavioral segment label (Champions, Loyal, At Risk, Promising, Hibernating) as *ground truth* to validate K-Means results against rule-based segmentation. | `Categorical / Nominal` | Champions (n=1500), Loyal (n=2500), At Risk (n=2000), Promising (n=2000), Hibernating (n=2000) | Not used as a predictive feature, but as a *ground truth label* to compare K-Means performance (Adjusted Rand Index: **0.485**). | **Ref:** Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), pp. 128–134. · Handojo, A., et al. (2023). *A multi layer RFM method.* [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) |
 | `last_tx_date` | Date of the customer's last transaction as a temporal reference to track behavioral shifts and the basis for calculating inactivity duration. | `Date (YYYY-MM-DD)` | Jan 1, 2024 to Dec 31, 2024 (counted backward from the Jan 1, 2025 benchmark) | Used to calculate `recency_days`. Disabled from XGBoost model input to maintain stationarity, but crucial for monthly cohort analysis. | **Ref:** Cynthia, M. M., & Iqbal, M. (2026). JIMAT, 6(1), pp. 128–134. · Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) |
-| `recency_days` | Number of days since the last transaction to the observation date. The primary proxy for *attrition risk* — inactive users switch to competitors without any formal cancellation. | `Integer / Discrete` | 1–365 days — Champions: 1–14 · Loyal: 7–30 · At Risk: 45–90 · Promising: 3–21 · Hibernating: 90–365 | Most important predictor in XGBoost & Random Forest (**SHAP value: 0.42**). An increase in `recency_days` directly correlates with higher churn probability. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
+| `recency_days` | Number of days since the last transaction to the observation date. The primary proxy for *attrition risk* — inactive users switch to competitors without any formal cancellation. | `Integer / Discrete` | 1–365 days — Champions: 1–14 · Loyal: 7–30 · At Risk: 45–90 · Promising: 3–21 · Hibernating: 90–365 | **#1 most important predictor** in XGBoost (mean \|SHAP\| ≈ 0.42). An increase in `recency_days` directly correlates with higher churn probability. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
 | `frequency_monthly` | Number of completed transactions per month as a proxy for *habitual engagement* — high-frequency users integrate the app into their daily routine. | `Integer / Discrete` | 0–30 transactions — Champions: 15–30x · Loyal: 8–15x · At Risk: 2–6x · Promising: 3–8x · Hibernating: 0–1x | Primary input feature. A declining monthly frequency trend becomes an *early warning indicator* of *silent churn*. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
 | `monetary_monthly` | Total monthly customer spending as a measure of direct contribution to *gross revenue* and estimated loss in the event of churn (*Revenue at Risk*). | `Float / Continuous` | Rp 0–2,500,000/month — Champions: Rp 800K–2.5M · Loyal: Rp 300K–800K · At Risk: Rp 100K–350K · Promising: Rp 80K–250K · Hibernating: Rp 0–80K | Links ML classification output with real financial impact to calculate total *revenue at risk* per segment. | **Ref:** Handojo, A., et al. (2023). [Cogent Engineering, 10(1)](https://www.tandfonline.com/doi/full/10.1080/23311916.2022.2162679) · Cynthia, M. M., & Iqbal, M. (2026). [JIMAT, 6(1)](http://www.hostjournals.com/jimat/article/download/964/637) |
-| `ovo_points_balance` | Accumulated OVO points balance. Based on the *Goal-Gradient Hypothesis*, an active balance encourages repeat transactions (*purchase acceleration*) to prevent points from expiring. | `Integer / Discrete` | 0–~30,000 points (monetary × 1% cashback × 0.8–1.2 variance) | Important input feature (**SHAP value: 0.14**). A high points balance is negatively correlated with churn due to the *loss aversion* effect. | **Ref:** Anugrah, F. T. (2020). [QEMS, 1(1), pp. 44–50](https://qemsjournal.org/index.php/qems/article/view/77) · Kivetz, R., et al. (2006). *The Goal-Gradient Hypothesis Resurrected.* Journal of Marketing Research, 43, pp. 39–58. |
-| `tier` | Tiered membership status (Member, Silver, Gold, Platinum). Elite status triggers *social recognition* and *loss aversion* that drives concentration of spending within a single ecosystem. | `Categorical / Ordinal` | Member (≤ Rp200K) · Silver (> Rp200K) · Gold (> Rp600K) · Platinum (> Rp1.5M) | Used as `tier_encoded` (**SHAP value: 0.11**). Gold/Platinum status positively correlates with long-term retention. | **Ref:** Leong, P. H., et al. (2022). *Tiered Loyalty Membership Program via Behavioural Science.* [ResearchGate](https://www.researchgate.net/publication/362600847) |
+| `ovo_points_balance` | Accumulated OVO points balance. Based on the *Goal-Gradient Hypothesis*, an active balance encourages repeat transactions (*purchase acceleration*) to prevent points from expiring. | `Integer / Discrete` | 0–~30,000 points (monetary × 1% cashback × 0.8–1.2 variance) | Important input feature. A high points balance is negatively correlated with churn due to the *loss aversion* effect. | **Ref:** Anugrah, F. T. (2020). [QEMS, 1(1), pp. 44–50](https://qemsjournal.org/index.php/qems/article/view/77) · Kivetz, R., et al. (2006). *The Goal-Gradient Hypothesis Resurrected.* Journal of Marketing Research, 43, pp. 39–58. |
+| `tier` | Tiered membership status (Member, Silver, Gold, Platinum). Elite status triggers *social recognition* and *loss aversion* that drives concentration of spending within a single ecosystem. | `Categorical / Ordinal` | Member (≤ Rp200K) · Silver (> Rp200K) · Gold (> Rp600K) · Platinum (> Rp1.5M) | Used as `tier_encoded` in model. Gold/Platinum status positively correlates with long-term retention. | **Ref:** Leong, P. H., et al. (2022). *Tiered Loyalty Membership Program via Behavioural Science.* [ResearchGate](https://www.researchgate.net/publication/362600847) |
 | `services_used` | List of Super App services used (GrabBike, GrabCar, GrabFood, GrabMart, GrabExpress) as an indicator of *cross-buying behavior* to measure ecosystem engagement. | `Pipe-delimited String` | 1–4 unique services per user. Example: `GrabBike\|GrabFood\|GrabMart` | Processed via **One-Hot Encoding** into binary 0/1 columns per service to capture each vertical's contribution to daily activity. | **Ref:** Reinartz, W., Thomas, J. S., & Bascoul, G. (2008). *Investigating Cross-Buying and Customer Loyalty.* [Journal of Interactive Marketing, 22(1)](https://onlinelibrary.wiley.com/doi/abs/10.1002/dir.20103) |
-| `n_services` | Number of unique services used as a measure of *ecosystem lock-in* — the more services used, the higher the *switching cost* to competitors. | `Integer / Discrete` | 1–4 unique services | Second strongest predictor (**SHAP value: 0.28**). Users with `n_services >= 3` have a churn risk **3.2x lower** than single-service users. | **Ref:** Gelici, M. B. (2021). *Superapp: Asian Super Apps in Western Markets.* [Univ. of Twente Thesis](https://essay.utwente.nl/fileshare/file/90608/M-BA-Gelici-Superapp.pdf) · *Customer Retention in Digital Platforms.* (2026). [Transport Economics & Policy Journal](https://www.researchgate.net/publication/402062417) |
+| `n_services` | Number of unique services used as a measure of *ecosystem lock-in* — the more services used, the higher the *switching cost* to competitors. | `Integer / Discrete` | 1–4 unique services | **#2 most important predictor** (mean \|SHAP\| ≈ 0.28). Users with `n_services >= 3` have a churn risk **3.2x lower** than single-service users. | **Ref:** Gelici, M. B. (2021). *Superapp: Asian Super Apps in Western Markets.* [Univ. of Twente Thesis](https://essay.utwente.nl/fileshare/file/90608/M-BA-Gelici-Superapp.pdf) · *Customer Retention in Digital Platforms.* (2026). [Transport Economics & Policy Journal](https://www.researchgate.net/publication/402062417) |
 | `city` | Customer's city of residence (Jakarta, Bandung, Surabaya, Medan, Bekasi) to control for spatial factors, local infrastructure, and regional *Purchasing Power Parity*. | `Categorical / Nominal` | Jakarta (45%) · Bandung (15%) · Surabaya (15%) · Bekasi (15%) · Medan (10%) | Categorical feature (one-hot encoded) to detect geographic bias, e.g., churn fluctuations in Jakarta due to more aggressive promotional competition. | **Ref:** *Evaluating ride-hailing adoption in emerging markets: Yogyakarta, Indonesia.* (2025). Transport Economics and Policy Journal. |
-| `churn_label` | Binary attrition status label (1 = churn, 0 = active). Churn is defined as the absence of transactions for the **last 90 days** — the industry standard threshold for non-contractual platforms. | `Binary (0 or 1)` | ~32% churn from 10,000 records | **Target variable** for supervised learning — training XGBoost, Random Forest, and Logistic Regression to predict churn. | **Ref:** Smail, M. Y., & Asri, A. (2025). *Predictive Models for Customer Churn in Ride-Hailing.* [Revue d'économie, 21(1), pp. 131–144](https://asjp.cerist.dz/en/article/279460) · Boukrouh, I., & Azmani, A. (2025). IJAI, 14(1), pp. 286–297. |
+| `churn_label` | Binary attrition status label (1 = churn, 0 = active). Churn is defined as the absence of transactions for the **last 90 days** — the industry standard threshold for non-contractual platforms. | `Binary (0 or 1)` | Actual churn rate: **34.4%** from 10,000 records | **Target variable** for supervised learning — training XGBoost, Random Forest, and Logistic Regression to predict churn. | **Ref:** Smail, M. Y., & Asri, A. (2025). *Predictive Models for Customer Churn in Ride-Hailing.* [Revue d'économie, 21(1), pp. 131–144](https://asjp.cerist.dz/en/article/279460) · Boukrouh, I., & Azmani, A. (2025). IJAI, 14(1), pp. 286–297. |
 
 > **Data transparency:** This dataset is simulated data, not internal Grab data. The dataset creation methodology is fully documented in `notebooks/01_data_generation.ipynb`.
 
@@ -244,7 +245,8 @@ Below are the main columns in the dataset along with their analytical explanatio
 │  05 · Churn Prediction + SHAP                                │
 │  16 features · 80/20 train-test split · stratified          │
 │  LogReg (AUC 0.842) · RF (F1 0.694) · XGBoost (AUC 0.838)  │
-│  SHAP: recency_days top predictor · waterfall At-Risk 70.9% │
+│  SHAP: recency_days #1 (≈0.42) · n_services #2 (≈0.28)     │
+│  Waterfall At-Risk user: churn prob 70.9%                   │
 │  Output: xgboost_churn_final.pkl · features_final.csv       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -290,22 +292,24 @@ Below are the main columns in the dataset along with their analytical explanatio
 weighted avg       0.78      0.77      0.78      2000
 ```
 
-### SHAP Feature Importance — Top Predictors (global + instance level)
+### SHAP Feature Importance — Top Predictors (global mean |SHAP|)
 
 ```
-recency_days        ████████████████████████  ~0.14 per instance (top global)
-ovo_points_balance  ████████████░░░░░░░░░░░░  global 2nd most important
-frequency_monthly   ████████████░░░░░░░░░░░░  global 3rd
+recency_days        ████████████████████████  ≈ 0.42  (global #1)
+n_services          ██████████████░░░░░░░░░░  ≈ 0.28  (global #2)
+frequency_monthly   ████████████░░░░░░░░░░░░  (global #3)
 spend_trend         ████████░░░░░░░░░░░░░░░░  behavioral trend signal
-tier_encoded        ██░░░░░░░░░░░░░░░░░░░░░░  near-zero impact
-n_services          ██░░░░░░░░░░░░░░░░░░░░░░  near-zero global (but contextually important)
+ovo_points_balance  ██████░░░░░░░░░░░░░░░░░░  loss aversion proxy
+tier_encoded        ███░░░░░░░░░░░░░░░░░░░░░  tier loyalty signal
 ```
+
+> Note: ranking above reflects the global mean |SHAP| values from `shap.Explainer` (PermutationExplainer) on the 2,000 test samples. `n_services` ranks #2 globally despite having lower per-instance contribution on average, because its effect is highly consistent across users. `ovo_points_balance` has contextually important instance-level effects (loss aversion) but lower mean global ranking.
 
 **SHAP Waterfall: Example At-Risk user:**
 - Churn probability: **70.9%** (up from baseline 0.395)
 - `recency_days` = 49 days → +0.15 (largest contribution)
 - `spend_trend` = -31,310 → +0.09 (declining spending)
-- `n_services` = 1 → -0.02 (slightly inhibits churn)
+- `n_services` = 1 → -0.02 (slightly inhibits churn for this user)
 
 ---
 
@@ -333,7 +337,7 @@ ride-hailing-loyalty-program/
 │   │   └── rewards_synthetic.csv          # Main dataset (10K users, 12 cols)
 │   └── processed/
 │       ├── rfm_scores.csv                 # RFME scores + segment labels (10K × 20 cols)
-│       └── features_final.csv            # Feature matrix test set + predictions (2K × 16 cols)
+│       └── features_final.csv            # Feature matrix test set + predictions (2K × 22 cols)
 │
 ├── notebooks/
 │   ├── 01_data_generation.ipynb          # Synthetic data generator
@@ -426,7 +430,7 @@ ipykernel>=6.0
 
 ### Limitations
 
-- **Synthetic data:** The dataset is a distribution-based simulation from the literature — not internal Grab data. The actual churn rate (34.4%) differs slightly from the design target (32%) due to realistic noise introduced during generation.
+- **Synthetic data:** The dataset is a distribution-based simulation from the literature not internal Grab data. The actual churn rate (34.4%) differs slightly from the design target (32%) due to realistic noise introduced during generation.
 - **SHAP PermutationExplainer:** Because `shap.Explainer` is used with a prediction function (not directly `TreeExplainer`), SHAP calculation takes ~13 minutes for 2,001 samples. For production, use `TreeExplainer` directly.
 - **Moderate model performance:** AUC-ROC 0.838 and F1 0.689 reflect the complexity of synthetic data with significant overlap between segments. With richer behavioral features (promo history, session data), performance could improve significantly.
 - **No temporal validation:** The model was validated cross-sectionally; time-series validation (walk-forward) has not been applied.
