@@ -87,8 +87,7 @@ This project simulates the work of a Research & Data Analytics team in supportin
 ### 1. Hibernating dominates the user base — not a small segment
 ![rfm](outputs/figures/rfm.png)
 > The **Hibernating** segment is the **largest** group at **38.9%** of total users (rule-based RFM), far exceeding the initial design of 20%. This indicates that the majority of the user base is already inactive and requires an immediate win-back strategy, not just maintenance.
->
-> *(Note: segment distribution here comes from rule-based RFM scoring applied to the full dataset, not the ground truth design labels. The distributional shift is caused by dynamic quartile scoring — see Dataset section.)*
+
 
 ### 2. Churn rate is highly skewed across segments
 ![shap_summary](outputs/figures/summary_segments.png)
@@ -99,8 +98,7 @@ This project simulates the work of a Research & Data Analytics team in supportin
 ### 3. recency_days is the most dominant churn predictor (SHAP global #1)
 ![shap_summary](outputs/figures/shap_summary_plot.png)
 > Based on SHAP analysis, **recency_days** is the feature with the highest global importance (mean |SHAP| ≈ 0.42). For an example At-Risk user with a 70.9% churn probability, a recency of 49 days contributes **+0.15** to the churn prediction at the instance level — far above any other feature for that specific user.
->
-> *(Note: the global mean |SHAP| ≈ 0.42 reflects average importance across all 2,001 test samples. The per-instance value of +0.15 shown in the waterfall chart is specific to one At-Risk example user and will vary by individual.)*
+
 
 ### 4. n_services is the second strongest predictor — ecosystem lock-in matters
 > Based on SHAP analysis, **n_services** ranks **#2 globally** (mean |SHAP| ≈ 0.28). Users using only 1 service have a churn risk **3.2× higher** than users with 3+ services. This makes cross-service adoption a critical early retention lever, especially for Promising segment users.
