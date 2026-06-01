@@ -37,7 +37,7 @@ This project analyzes **10,000 Ride Hailing App users** using an end-to-end appr
 
 **3 main findings:**
 - 📍 **Hibernating** (38.9% of the user base) is the largest segment; the majority are already inactive and require an immediate win-back strategy.
-- 📍 **recency_days** is the strongest churn predictor (SHAP mean |SHAP| ≈ 0.42 globally) — the longer since the last transaction, the higher the churn risk.
+- 📍 **recency_days** is the strongest churn predictor (SHAP mean |SHAP| ≈ 0.14 globally) — the longer since the last transaction, the higher the churn risk.
 - 📍 **XGBoost** was selected as the final model with **AUC-ROC 0.838**, **F1-score 0.689**, successfully capturing **73% of users who actually churned** (Recall = 0.731).
 
 | Metric | Value |
@@ -48,8 +48,8 @@ This project analyzes **10,000 Ride Hailing App users** using an end-to-end appr
 | AUC-ROC | 0.838 |
 | F1-score (churn class) | 0.689 |
 | Recall (churn class) | 0.731 |
-| Top churn predictor | `recency_days` (mean \|SHAP\| ≈ 0.42) |
-| 2nd churn predictor | `n_services` (mean \|SHAP\| ≈ 0.28) |
+| Top churn predictor | `recency_days` (mean \|SHAP\| ≈ 0.14) |
+| 2nd churn predictor | `ovo_points_balance` (mean \|SHAP\| ≈ 0.088) |
 | Adjusted Rand Index (K-Means) | 0.485 |
 
 ---
@@ -97,11 +97,11 @@ This project simulates the work of a Research & Data Analytics team in supportin
 
 ### 3. recency_days is the most dominant churn predictor (SHAP global #1)
 ![shap_summary](outputs/figures/shap_summary_plot.png)
-> Based on SHAP analysis, **recency_days** is the feature with the highest global importance (mean |SHAP| ≈ 0.42). For an example At-Risk user with a 70.9% churn probability, a recency of 49 days contributes **+0.15** to the churn prediction at the instance level — far above any other feature for that specific user.
+> Based on SHAP analysis, **recency_days** is the feature with the highest global importance (mean |SHAP| ≈ 0.14). For an example At-Risk user with a 70.9% churn probability, a recency of 49 days contributes **+0.15** to the churn prediction at the instance level — far above any other feature for that specific user.
 
 
-### 4. n_services is the second strongest predictor — ecosystem lock-in matters
-> Based on SHAP analysis, **n_services** ranks **#2 globally** (mean |SHAP| ≈ 0.28). Users using only 1 service have a churn risk **3.2× higher** than users with 3+ services. This makes cross-service adoption a critical early retention lever, especially for Promising segment users.
+### 4. ovo_points_balance is the second strongest predictor — loss aversion drives retention
+> Based on SHAP analysis, **ovo_points_balance** ranks **#2 globally** (mean |SHAP| ≈ 0.088), confirming the loss aversion effect — users with an active, growing points balance are significantly less likely to churn. When balances are low or stagnant, churn risk rises sharply, making OVO Points balance a core retention signal to monitor. **frequency_monthly** ranks #3 globally (mean |SHAP| ≈ 0.046), confirming that habitual transaction activity is a strong protective factor against churn. **n_services** ranks #10 globally (mean |SHAP| ≈ 0.006) — low global predictive weight, though segment-level analysis shows users with n_services ≥ 3 have a **3.2× lower churn risk** than single-service users, making cross-service adoption a valid segment-specific retention lever.
 
 ### 5. Member tier is most vulnerable to churn
 ![Churn Rate Analysis](outputs/figures/eda_05_churn_rate_analysis.png)
@@ -140,7 +140,7 @@ Based on churn rate analysis per segment, tier, SHAP feature importance, and rev
 | **P1** | ⚠️ At_Risk | Churn rate 46%, revenue at risk Rp 208 juta/month, recency 45–90 days; SHAP: recency_days #1 predictor | Alert "OVO Points expiring in 30 days" + 25% off GrabFood voucher; trigger at recency > 45 days | If 25% of 2,000 users recovered (500 users × avg Rp 228K/month) → Rp 114 juta/month recovery potential |
 | **P1** | 😴 Hibernating | Churn rate 85%, but revenue at risk only Rp 69 juta due to near-zero monetary; 70% in Member tier | Win-back campaign **only** for users with historical monetary > Rp 500K (est. top 20% = ~400 users); skip low-value as voucher cost likely exceeds recovery value | Target pool: ~400 users × avg Rp 500K × 15% recovery = Rp 30 juta/month potential; cost-benefit must be validated before scaling |
 | **P2** | 💙 Loyal | Churn rate 10%, revenue at risk Rp 140 juta/month (2nd largest); 40.9% Silver — close to Gold threshold | Push notification "X more points to reach Gold" + weekly frequency-based challenge; tier upgrade reduces churn from ~10% to ~3% (Silver → Gold) | If 20% of 2,210 users upgrade to Gold (442 users): estimated churn reduction saves Rp 28 juta/month at avg Rp 550K spend |
-| **P2** | 🌱 Promising | Churn rate 26%; n_services = SHAP #2 global predictor (mean \|SHAP\| ≈ 0.28); avg n_services = 1–2 | "Try GrabMart, earn 2x points this week" — push multi-service adoption; users with n_services ≥ 3 have 3.2× lower churn risk | If 30% of 1,110 users add 1+ service (333 users × churn reduction ~20%) → Rp ~17 juta/month retention gain |
+| **P2** | 🌱 Promising | Churn rate 26%; segment-level analysis shows users with n_services ≥ 3 have 3.2× lower churn risk (n_services = SHAP #10 global, mean \|SHAP\| ≈ 0.006, but effect is strong at segment level); avg n_services = 1–2 | "Try GrabMart, earn 2x points this week" — push multi-service adoption; users with n_services ≥ 3 have 3.2× lower churn risk | If 30% of 1,110 users add 1+ service (333 users × churn reduction ~20%) → Rp ~17 juta/month retention gain |
 | **P3** | 🏆 Champions | Churn rate only 3%, predominantly Platinum/Gold; recency 1–14 days; revenue at risk Rp 80 juta | Early access to new features + monthly double-points event + personal appreciation notification | Maintaining 97%+ retention protects Rp 78 juta/month baseline revenue; minimal intervention cost |
 
 ---
@@ -155,9 +155,12 @@ This project successfully builds an end-to-end framework to optimize loyalty pro
 
 ### 2. Predictive Performance & Key Drivers (RQ2)
 * **XGBoost** was selected as the final model (**AUC-ROC: 0.838, F1-Score: 0.689**), successfully capturing **73.1% of actual churned users** (Recall: 0.731).
-* **SHAP Explainability** revealed the top 2 global churn predictors:
-  1. `recency_days` (mean $|\text{SHAP}| \approx 0.42$): The longer a user is inactive, the higher the churn risk.
-  2. `n_services` (mean $|\text{SHAP}| \approx 0.28$): Users with $\ge 3$ services have a **3.2× lower churn risk**, proving that ecosystem cross-buying is a massive retention lever.
+* **SHAP Explainability** revealed the top 3 global churn predictors:
+  1. `recency_days` (mean $|\text{SHAP}| \approx 0.14$): The longer a user is inactive, the higher the churn risk.
+  2. `ovo_points_balance` (mean $|\text{SHAP}| \approx 0.088$): Low or stagnant points balance signals imminent churn — loss aversion effect.
+  3. `frequency_monthly` (mean $|\text{SHAP}| \approx 0.046$): Declining transaction frequency is an early warning of silent churn.
+  
+  > Note: `n_services` ranks #10 globally (mean |SHAP| ≈ 0.006), but segment-level analysis confirms users with ≥ 3 services have a **3.2× lower churn risk** — valid as a cross-selling lever at the segment level.
 
 ### 3. Financial Impact & Revenue at Risk (RQ3 & RQ4)
 * The total monthly **Revenue at Risk reaches Rp 583,324,000**.
@@ -221,7 +224,7 @@ Below are the main columns in the dataset along with their analytical explanatio
 | `ovo_points_balance` | Accumulated OVO points balance. Based on the *Goal-Gradient Hypothesis*, an active balance encourages repeat transactions (*purchase acceleration*) to prevent points from expiring. | `Integer / Discrete` | 0–~30,000 points (monetary × 1% cashback × 0.8–1.2 variance) | Important input feature. A high points balance is negatively correlated with churn due to the *loss aversion* effect. | **Ref:** Anugrah, F. T. (2020). [QEMS, 1(1), pp. 44–50](https://qemsjournal.org/index.php/qems/article/view/77) · Kivetz, R., et al. (2006). *The Goal-Gradient Hypothesis Resurrected.* Journal of Marketing Research, 43, pp. 39–58. |
 | `tier` | Tiered membership status (Member, Silver, Gold, Platinum). Elite status triggers *social recognition* and *loss aversion* that drives concentration of spending within a single ecosystem. | `Categorical / Ordinal` | Member (≤ Rp200K) · Silver (> Rp200K) · Gold (> Rp600K) · Platinum (> Rp1.5M) | Used as `tier_encoded` in model. Gold/Platinum status positively correlates with long-term retention. | **Ref:** Leong, P. H., et al. (2022). *Tiered Loyalty Membership Program via Behavioural Science.* [ResearchGate](https://www.researchgate.net/publication/362600847) |
 | `services_used` | List of Super App services used (GrabBike, GrabCar, GrabFood, GrabMart, GrabExpress) as an indicator of *cross-buying behavior* to measure ecosystem engagement. | `Pipe-delimited String` | 1–4 unique services per user. Example: `GrabBike\|GrabFood\|GrabMart` | Processed via **One-Hot Encoding** into binary 0/1 columns per service to capture each vertical's contribution to daily activity. | **Ref:** Reinartz, W., Thomas, J. S., & Bascoul, G. (2008). *Investigating Cross-Buying and Customer Loyalty.* [Journal of Interactive Marketing, 22(1)](https://onlinelibrary.wiley.com/doi/abs/10.1002/dir.20103) |
-| `n_services` | Number of unique services used as a measure of *ecosystem lock-in* — the more services used, the higher the *switching cost* to competitors. | `Integer / Discrete` | 1–4 unique services | **#2 most important predictor** (mean \|SHAP\| ≈ 0.28). Users with `n_services >= 3` have a churn risk **3.2x lower** than single-service users. | **Ref:** Gelici, M. B. (2021). *Superapp: Asian Super Apps in Western Markets.* [Univ. of Twente Thesis](https://essay.utwente.nl/fileshare/file/90608/M-BA-Gelici-Superapp.pdf) · *Customer Retention in Digital Platforms.* (2026). [Transport Economics & Policy Journal](https://www.researchgate.net/publication/402062417) |
+| `n_services` | Number of unique services used as a measure of *ecosystem lock-in* — the more services used, the higher the *switching cost* to competitors. | `Integer / Discrete` | 1–4 unique services | **#10 globally** (mean \|SHAP\| ≈ 0.006). Despite low global SHAP ranking, users with `n_services >= 3` have a churn risk **3.2× lower** than single-service users at the segment level — relevant as a cross-selling lever but not a dominant global predictor. | **Ref:** Gelici, M. B. (2021). *Superapp: Asian Super Apps in Western Markets.* [Univ. of Twente Thesis](https://essay.utwente.nl/fileshare/file/90608/M-BA-Gelici-Superapp.pdf) · *Customer Retention in Digital Platforms.* (2026). [Transport Economics & Policy Journal](https://www.researchgate.net/publication/402062417) |
 | `city` | Customer's city of residence (Jakarta, Bandung, Surabaya, Medan, Bekasi) to control for spatial factors, local infrastructure, and regional *Purchasing Power Parity*. | `Categorical / Nominal` | Jakarta (45%) · Bandung (14%) · Surabaya (15%) · Bekasi (15%) · Medan (10%) | Categorical feature (one-hot encoded) to detect geographic bias, e.g., churn fluctuations in Jakarta due to more aggressive promotional competition. | **Ref:** *Evaluating ride-hailing adoption in emerging markets: Yogyakarta, Indonesia.* (2025). Transport Economics and Policy Journal. |
 | `churn_label` | Binary attrition status label (1 = churn, 0 = active). Churn is defined as the absence of transactions for the **last 90 days** — the industry standard threshold for non-contractual platforms. | `Binary (0 or 1)` | Actual churn rate: **34.4%** from 10,000 records | **Target variable** for supervised learning — training XGBoost, Random Forest, and Logistic Regression to predict churn. | **Ref:** Smail, M. Y., & Asri, A. (2025). *Predictive Models for Customer Churn in Ride-Hailing.* [Revue d'économie, 21(1), pp. 131–144](https://asjp.cerist.dz/en/article/279460) · Boukrouh, I., & Azmani, A. (2025). IJAI, 14(1), pp. 286–297. |
 
@@ -318,15 +321,20 @@ weighted avg       0.78      0.77      0.78      2000
 ### SHAP Feature Importance — Top Predictors (global mean |SHAP|)
 
 ```
-recency_days        ████████████████████████  ≈ 0.42  (global #1)
-n_services          ██████████████░░░░░░░░░░  ≈ 0.28  (global #2)
-frequency_monthly   ████████████░░░░░░░░░░░░  (global #3)
-spend_trend         ████████░░░░░░░░░░░░░░░░  behavioral trend signal
-ovo_points_balance  ██████░░░░░░░░░░░░░░░░░░  loss aversion proxy
-tier_encoded        ███░░░░░░░░░░░░░░░░░░░░░  tier loyalty signal
+recency_days        ████████████████████████  ≈ 0.140  (global #1)
+ovo_points_balance  ████████████████░░░░░░░░  ≈ 0.088  (global #2)
+frequency_monthly   ████████░░░░░░░░░░░░░░░░  ≈ 0.046  (global #3)
+spend_trend         ████░░░░░░░░░░░░░░░░░░░░  ≈ 0.022  behavioral trend signal
+freq_trend          ████░░░░░░░░░░░░░░░░░░░░  ≈ 0.021  frequency trajectory
+monetary_monthly    ████░░░░░░░░░░░░░░░░░░░░  ≈ 0.020  absolute spend level
+promo_sensitivity   ███░░░░░░░░░░░░░░░░░░░░░  ≈ 0.018  promo responsiveness
+points_to_expiry    ███░░░░░░░░░░░░░░░░░░░░░  ≈ 0.017  expiry urgency proxy
+RFM_score           █░░░░░░░░░░░░░░░░░░░░░░░  ≈ 0.008  composite RFM signal
+n_services          █░░░░░░░░░░░░░░░░░░░░░░░  ≈ 0.006  (global #10)
+tier_encoded        ░░░░░░░░░░░░░░░░░░░░░░░░  ≈ 0.002  tier loyalty signal
 ```
 
-> Note: ranking above reflects the global mean |SHAP| values from `shap.Explainer` (PermutationExplainer) on the 2,000 test samples. `n_services` ranks #2 globally despite having lower per-instance contribution on average, because its effect is highly consistent across users. `ovo_points_balance` has contextually important instance-level effects (loss aversion) but lower mean global ranking.
+> Note: ranking above reflects the global mean |SHAP| values from `shap.Explainer` (PermutationExplainer) on the 2,000 test samples. `ovo_points_balance` ranks #2 globally due to the loss aversion effect — users with high point balances consistently resist churn. `n_services` ranks #10 globally despite showing a strong 3.2× churn risk difference between 1-service and 3+-service users at the segment level; the segment-level pattern is real but its global predictive weight in the model is low. `ovo_points_balance` has strong both global and instance-level effects.
 
 **SHAP Waterfall: Example At-Risk user:**
 - Churn probability: **70.9%** (up from baseline 0.395)
