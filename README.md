@@ -1,4 +1,4 @@
-# 🏆 **Ride Hailing App Loyalty Program** — User Segmentation & Churn Risk Analysis
+# 🏆 **Ride Hailing App Loyalty Program**: User Segmentation & Churn Risk Analysis
 
 ![Cover Project](cover.png)
 
@@ -143,6 +143,31 @@ Based on churn rate analysis per segment, tier, SHAP feature importance, and rev
 | **P2** | 💙 Loyal | Churn rate 10%, revenue at risk Rp 140 juta/month (2nd largest); 40.9% Silver — close to Gold threshold | Push notification "X more points to reach Gold" + weekly frequency-based challenge; tier upgrade reduces churn from ~10% to ~3% (Silver → Gold) | If 20% of 2,210 users upgrade to Gold (442 users): estimated churn reduction saves Rp 28 juta/month at avg Rp 550K spend |
 | **P2** | 🌱 Promising | Churn rate 26%; n_services = SHAP #2 global predictor (mean \|SHAP\| ≈ 0.28); avg n_services = 1–2 | "Try GrabMart, earn 2x points this week" — push multi-service adoption; users with n_services ≥ 3 have 3.2× lower churn risk | If 30% of 1,110 users add 1+ service (333 users × churn reduction ~20%) → Rp ~17 juta/month retention gain |
 | **P3** | 🏆 Champions | Churn rate only 4%, predominantly Platinum/Gold; recency 1–14 days; revenue at risk Rp 80 juta | Early access to new features + monthly double-points event + personal appreciation notification | Maintaining 96%+ retention protects Rp 77 juta/month baseline revenue; minimal intervention cost |
+
+---
+
+## 🏁 Conclusion
+
+This project successfully builds an end-to-end framework to optimize loyalty program retention and mitigate customer churn using a data-driven approach. 
+
+### 1. User Segmentation (RQ1 & RQ3)
+* **K-Means Clustering ($k=5$, ARI: 0.485)** effectively mapped user behavior into distinct groups.
+* The **Hibernating** segment dominates the platform at **38.9%** with a staggering **85% churn rate**, indicating a heavily inactive user base that requires an aggressive win-back strategy.
+
+### 2. Predictive Performance & Key Drivers (RQ2)
+* **XGBoost** was selected as the final model (**AUC-ROC: 0.838, F1-Score: 0.689**), successfully capturing **73.1% of actual churned users** (Recall: 0.731).
+* **SHAP Explainability** revealed the top 2 global churn predictors:
+  1. `recency_days` (mean $|\text{SHAP}| \approx 0.42$): The longer a user is inactive, the higher the churn risk.
+  2. `n_services` (mean $|\text{SHAP}| \approx 0.28$): Users with $\ge 3$ services have a **3.2× lower churn risk**, proving that ecosystem cross-buying is a massive retention lever.
+
+### 3. Financial Impact & Revenue at Risk (RQ3 & RQ4)
+* The total monthly **Revenue at Risk reaches Rp 583,324,000**.
+* **At_Risk users** are the **highest-value target**, accounting for **Rp 208,837,000/month** in endangered revenue. 
+* Implementing personalized interventions instead of a "one-size-fits-all" approach ensures marketing budget efficiency:
+  * **P1 (At_Risk):** Trigger urgent "points expiring" alerts and high-value food vouchers when recency exceeds 45 days.
+  * **P2 (Promising):** Push multi-service adoption (e.g., cross-selling GrabMart) to lock users into the ecosystem.
+
+**Business ROI:** By proactively deploying the XGBoost model to flag high-risk users and automating targeted micro-incentives, the business can safeguard over **Rp 150,000,000+ per month** in baseline revenue while significantly reducing voucher burn rate.
 
 ---
 
